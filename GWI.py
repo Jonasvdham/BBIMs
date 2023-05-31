@@ -109,17 +109,10 @@ class GWI:
             )[0]
         )
 
+    # TODO: Check if rotation period is over
+    # it seems the influence of bio-genic is stopped there
     def f_total(self, t, lifetime, rotation_period):
         if t < lifetime:
-            return -(
-                quad(
-                    lambda x: self.growth(x, rotation_period)
-                    * self.C_CO2(t - x),
-                    0,
-                    t,
-                )[0]
-            )
-        elif t == lifetime:
             self.tmp = -(
                 quad(
                     lambda x: self.growth(x, rotation_period)
@@ -128,11 +121,11 @@ class GWI:
                     t,
                 )[0]
             )
-            print(self.tmp)
             return self.tmp
         else:
             return (
                 self.C_CO2(t - lifetime)
+                + self.tmp
                 - quad(
                     lambda x: self.growth(x, rotation_period)
                     * self.C_CO2(t - x),
