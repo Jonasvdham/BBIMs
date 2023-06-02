@@ -36,9 +36,14 @@ class GWI:
         self.rotation_period = rotation_period
 
         # tmp
-        self.data = {"CO2": np.zeros(self.tf), "CH4": np.zeros(self.tf)}
+        self.data = {
+            "CO2": np.zeros(self.tf),
+            "CH4": np.zeros(self.tf),
+            "N2O": np.zeros(self.tf),
+        }
         self.data["CO2"][0] = 1
         self.data["CH4"][0] = 1
+        self.data["N2O"][0] = 1
         self.df = pd.DataFrame(self.data)
         self.tmp = 0
 
@@ -47,6 +52,7 @@ class GWI:
 
     # CO2 calculation formula
     # time dependent atmospheric load for CO2, Bern model
+    # c(x)=0.217+0.259*e^(-x/172.9)+0.338*e^(-x/18.51)+0.186*e^(-x/1.186)
     def C_CO2(self, t):
         return (
             self.constants["aBern"][0]
@@ -63,33 +69,27 @@ class GWI:
     def C_CH4(self, t):
         return np.exp(-t / self.constants["GHGs"]["CH4"]["tau"])
 
-    def DCF(self, GHG, t):
+    def DCF(self, GHG, tj, t):
         return quad(
             lambda x: self.constants["GHGs"][GHG]["a"]
             * self.constants["GHGs"][GHG]["decay_func"](x),
+            tj,
             t,
-            t + 1,
         )[0]
 
     def GWI_inst(self, t):
         GWI_GHG = 0
         for GHG in self.constants["GHGs"].keys():
             for year in range(t):
-                GWI_GHG += self.data[GHG][year] * self.DCF(GHG, t - year)
+                GWI_GHG += self.data[GHG][year] * self.DCF(
+                    GHG, t - year, t + 1 - year
+                )
         return GWI_GHG
 
     def GWI_cum(self, t):
-        return sum([self.GWI_inst(i) for i in range(t)])
+        return sum([self.GWI_inst(i + 1) for i in range(t)])
 
-    def plot(self, lifetime, rotation_period):
-        x = np.arange(self.tf)
-        y = [
-            self.f_total(i, lifetime, rotation_period) for i in range(self.tf)
-        ]
-        plt.plot(x, y)
-        plt.show()
-
-    def GWPbio(self, c0=1, lifetime=None, rotation_period=None):
+    def GWPbio(self, c0, lifetime=None, rotation_period=None):
         if lifetime == None:
             lifetime = self.lifetime
         if rotation_period == None:
@@ -112,27 +112,32 @@ class GWI:
     # TODO: Check if rotation period is over
     # it seems the influence of bio-genic is stopped there
     def f_total(self, t, lifetime, rotation_period):
-        if t < lifetime:
-            self.tmp = -(
-                quad(
-                    lambda x: self.growth(x, rotation_period)
-                    * self.C_CO2(t - x),
-                    0,
-                    t,
-                )[0]
-            )
-            return self.tmp
+        if t <= rotation_period:
+            if t < lifetime:
+                self.tmp = -(
+                    quad(
+                        lambda x: self.growth(x, rotation_period)
+                        * self.C_CO2(t - x),
+                        0,
+                        t,
+                    )[0]
+                )
+                return self.tmp
+            else:
+                self.tmp2 = (
+                    self.C_CO2(t - lifetime)
+                    + self.tmp
+                    - quad(
+                        lambda x: self.growth(x, rotation_period)
+                        * self.C_CO2(t - x),
+                        lifetime,
+                        t,
+                    )[0]
+                )
+            return self.tmp2
         else:
-            return (
-                self.C_CO2(t - lifetime)
-                + self.tmp
-                - quad(
-                    lambda x: self.growth(x, rotation_period)
-                    * self.C_CO2(t - x),
-                    lifetime,
-                    t,
-                )[0]
-            )
+            if self.tmp2 < 0:
+                return -self.C_CO2(t - lifetime) + self.tmp
 
     def growth(self, t, rotation_period):
         return norm.pdf(t, loc=rotation_period / 2, scale=rotation_period / 4)
@@ -145,22 +150,30 @@ class GWI:
             t,
         )[0]
 
+    def plotftotal(self, plottype, lifetime, rotation_period):
+        x = np.arange(self.tf)
+        y = [
+            self.f_total(i, lifetime, rotation_period) for i in range(self.tf)
+        ]
+        plt.plot(x, y)
+        plt.show()
+
+    def plotGWIcum(self, t):
+        x = np.arange(t)
+        y = [self.GWI_cum(i) for i in range(t)]
+        plt.plot(x, y)
+        plt.show()
+
+    def plotGWIinst(self, t):
+        x = np.arange(t)
+        y = [self.GWI_inst(i) for i in range(t)]
+        plt.plot(x, y)
+        plt.show()
+
 
 GWI = GWI(tf=500)
 
-"""
-    def c_CO2_vector(self, t):
-        return self.constants["aBern"][0] + sum(
-            [
-                self.constants["aBern"][i + 1]
-                * np.exp(
-                    [-j / self.constants["GHGs"]["CO2"]["tau"][i] for j in t]
-                )
-                for i in range(3)
-            ]
-        )
 
-    def c_CH4_vector(self, t):
-        return np.exp([-i / self.constants["GHGs"]["CH4"]["tau"] for i in t])
-
-"""
+def test_biogenic():
+    for i in range(10):
+        print(10 * (i + 1), GWI.GWPbio(1, 10 * (i + 1), 10 * (i + 1)))
