@@ -1,0 +1,18 @@
+* BBIMs
+
+Thesis research project into the carbon-removal potential of bio-based
+insulation materials (BBIMs)
+
+* TODOs
+
+file:make_dataset.py
+
+- Work out different build scenario's (linear, fast, slow)
+  - Different function than sigmoid probably
+- Add CO2_bio (i.e. biogenic carbon values) from KOBO
+
+file:DLCA.py
+
+- Make call to file:make_dataset.py
+- Write to output file
+- Generate better plots (radiative forcing, GWP)
