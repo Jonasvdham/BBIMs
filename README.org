@@ -5,14 +5,14 @@ insulation materials (BBIMs)
 
 * TODOs
 
-file:make_dataset.py
+[[file:make_dataset.py]]
 
 - Work out different build scenario's (linear, fast, slow)
   - Different function than sigmoid probably
 - Add CO2_bio (i.e. biogenic carbon values) from KOBO
 
-file:DLCA.py
+[[file:DLCA.py]]
 
-- Make call to file:make_dataset.py
+- Make call to [[file:make_dataset.py]]
 - Write to output file
 - Generate better plots (radiative forcing, GWP)
