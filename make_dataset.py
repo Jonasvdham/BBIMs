@@ -10,8 +10,6 @@ insulation = pd.read_csv(
     sep="\t",
     skiprows=(lambda x: x > 0 and (x < 3086 or x > 3143)),
 )
-for gas in ["kg CO2", "kg CH4", "kg N2O", "kg CO"]:
-    insulation[gas] = insulation[gas].str.replace(",", ".").astype(float)
 
 # Type == Transformation or Market - is this new vs retrofit?
 # insulation = insulation[(insulation["Process"] == "Insulation") & (insulation["Type"] == "Market")]
@@ -28,9 +26,9 @@ material_names = {
 def make_dataset(
     material,
     building_scenario,
-    outfile,
     time_horizon=2050,
     total_houses=100000,
+    outfile=None,
 ):
     years = time_horizon - CURRENT_YEAR
     # dataset = pd.DataFrame(
@@ -77,12 +75,21 @@ def sigmoid(x, A, B, C, D):
     return A / (1 + np.exp(-B * (x - C))) + D
 
 
-def houses_built_per_year(x, total_houses, total_years):
-    A = total_houses  # Amplitude of the sigmoid curve
-    B = 0.5  # Controls the steepness of the curve
-    C = total_years / 2  # Midpoint of the sigmoid curve
-    D = 0  # Vertical shift of the curve
-    return sigmoid(x, A, B, C, D)
+def houses_per_year_slow(houses, years):
+    # quadratic: n * x² -> n/3x³
+    n = 3 * houses / (years ** 3)
+    print(n)
+    return [n / 3 * ((i + 1) ** 3) - n / 3 * (i ** 3) for i in range(years)]
+
+
+def houses_per_year_fast(houses, years):
+    # square root: n * sqrt(x) -> 2n/3x^(3/2)
+    n = houses / (2 / 3) * (years ** 3 / 2)
+    print(n)
+    return [
+        n * 2 / (3 * ((i + 1) ** (3 / 2)) - n * 2 / 3 * (i ** (3 / 2)))
+        for i in range(years)
+    ]
 
 
 def plot(GHG):
