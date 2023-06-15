@@ -2,6 +2,7 @@ import numpy as np
 from scipy.integrate import quad
 import pandas as pd
 import matplotlib.pyplot as plt
+from make_dataset import make_dataset
 
 """
 aCH4 - instant. radiative forcing per unit mass [10^-12 W/m2 /kgCH4]
@@ -26,6 +27,37 @@ df = pd.read_csv(
 )
 
 
+def DLCA(material, building_scenario, total_houses, time_horizon):
+    dataset = make_dataset(
+        material, building_scenario, total_houses, time_horizon
+    )
+
+    DCF_CO2 = [
+        quad(lambda x: aCO2 * C_CO2(x), t - 1, t)[0] for t in range(1, tf + 1)
+    ]
+
+    DCF_CH4 = [
+        quad(lambda x: aCH4 * C_CH4(x), t - 1, t)[0] for t in range(1, tf + 1)
+    ]
+
+    DCF_CO2_ti = np.zeros((tf, tf))
+    DCF_CH4_ti = np.zeros((tf, tf))
+    for t in range(tf):
+        for i in range(t + 1):
+            DCF_CO2_ti[i, t] = DCF_CO2[t - i]
+            DCF_CH4_ti[i, t] = DCF_CH4[t - i]
+
+    GWI_inst = pd.DataFrame(columns=["CO2", "CH4"], index=range(tf))
+    for t in range(tf):
+        GWI_inst["CO2"][t] = np.sum(
+            (df["CO2"][t] + df["CO2bio"][t]) * DCF_CO2_ti[:, t]
+        )
+        GWI_inst["CH4"][t] = np.sum(df["CH4"][t] * DCF_CH4_ti[:, t])
+
+    GWI_inst_tot = GWI_inst.sum(axis=1)
+    GWI_cum = GWI_inst_tot.cumsum()
+
+
 def C_CO2(t):
     return (
         a0Bern
@@ -37,31 +69,6 @@ def C_CO2(t):
 
 def C_CH4(t):
     return np.exp(-t / TauCH4)
-
-
-DCF_CO2 = [
-    quad(lambda x: aCO2 * C_CO2(x), t - 1, t)[0] for t in range(1, tf + 1)
-]
-DCF_CH4 = [
-    quad(lambda x: aCH4 * C_CH4(x), t - 1, t)[0] for t in range(1, tf + 1)
-]
-
-DCF_CO2_ti = np.zeros((tf, tf))
-DCF_CH4_ti = np.zeros((tf, tf))
-for t in range(tf):
-    for i in range(t + 1):
-        DCF_CO2_ti[i, t] = DCF_CO2[t - i]
-        DCF_CH4_ti[i, t] = DCF_CH4[t - i]
-
-GWI_inst = pd.DataFrame(columns=["CO2", "CH4"], index=range(tf))
-for t in range(tf):
-    GWI_inst["CO2"][t] = np.sum(
-        (df["CO2"][t] + df["CO2bio"][t]) * DCF_CO2_ti[:, t]
-    )
-    GWI_inst["CH4"][t] = np.sum(df["CH4"][t] * DCF_CH4_ti[:, t])
-
-GWI_inst_tot = GWI_inst.sum(axis=1)
-GWI_cum = GWI_inst_tot.cumsum()
 
 
 def plot(plottype=None):

@@ -3,13 +3,37 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 CURRENT_YEAR = 2023
-INSULATION_PER_UNIT_KG = 1000
-MATERIAL_NAMES = {
-    "cellulose": "Cellulose fibre. inclusive blowing in {GLO}| market for | Cut-off. S",
-    "cork": "Cork slab {GLO}| market for | Cut-off. S",
-    "glass wool": "Glass wool mat {GLO}| market for | Cut-off. S",
-    "stone wool": "Stone wool {GLO}| market for stone wool | Cut-off. S",
-    "XPS": "Polystyrene. extruded {GLO}| market for | Cut-off. S",
+INSULATION_PER_HOUSE_KG = 1000
+# Check dots/commas from tsv file
+MATERIALS = {
+    "cellulose": {
+        "name": "Cellulose fibre. inclusive blowing in {GLO}| market for | Cut-off. S",
+        "CO2bio": 0,
+        "amount": 1000,
+    },
+    "cork": {
+        "name": "Cork slab {GLO}| market for | Cut-off. S",
+        "CO2bio": 0.496,
+        "amount": 1000,
+    },
+    "flax": {"name": "", "CO2bio": 0.44, "amount": 1000},
+    "hemp": {"name": "", "CO2bio": 0.44, "amount": 1000},
+    "straw": {"name": "", "CO2bio": 0.368, "amount": 1000},
+    "glass wool": {
+        "name": "Glass wool mat {GLO}| market for | Cut-off. S",
+        "CO2bio": 0,
+        "amount": 1000,
+    },
+    "stone wool": {
+        "name": "Stone wool {GLO}| market for stone wool | Cut-off. S",
+        "CO2bio": 0,
+        "amount": 1000,
+    },
+    "XPS": {
+        "name": "Polystyrene. extruded {GLO}| market for | Cut-off. S",
+        "CO2bio": 0,
+        "amount": 1000,
+    },
 }
 
 
@@ -35,28 +59,28 @@ def make_dataset(
     if building_scenario == "normal":
         insulation_per_year = np.array(
             [
-                INSULATION_PER_UNIT_KG * total_houses / years
+                INSULATION_PER_HOUSE_KG * total_houses / years
                 for i in range(years)
             ]
         )
     elif building_scenario == "fast":
         insulation_per_year = [
-            INSULATION_PER_UNIT_KG * x
+            INSULATION_PER_HOUSE_KG * x
             for x in houses_per_year_fast(total_houses, years)
         ]
     elif building_scenario == "slow":
         insulation_per_year = [
-            INSULATION_PER_UNIT_KG * x
+            INSULATION_PER_HOUSE_KG * x
             for x in houses_per_year_slow(total_houses, years)
         ]
     else:
         raise ValueError("Choose building scenario normal/fast/slow")
-    if material not in MATERIAL_NAMES.keys():
+    if material not in MATERIALS.keys():
         raise ValueError("Material not supported")
     else:
         dataset = pd.DataFrame(
             (
-                insulation[insulation["Name"] == MATERIAL_NAMES[material]][
+                insulation[insulation["Name"] == MATERIALS[material]["name"]][
                     ["kg CO2", "kg CH4", "kg N2O", "kg CO"]
                 ]
                 .reset_index(drop=True)
@@ -64,6 +88,9 @@ def make_dataset(
                 .multiply(insulation_per_year, axis=0)
             )
         )
+        dataset["CO2bio"] = [
+            MATERIALS[material]["CO2bio"] * kg for kg in insulation_per_year
+        ]
     return dataset
 
 

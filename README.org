@@ -7,12 +7,30 @@ insulation materials (BBIMs)
 
 [[file:make_dataset.py]]
 
-- Work out different build scenario's (linear, fast, slow)
-  - Different function than sigmoid probably
-- Add CO2_bio (i.e. biogenic carbon values) from KOBO
+- Add CO2_bio (i.e. biogenic carbon values) from KBOB
+  - Currently not counting biogenic CO2 in cellulose as it is recycled
+- Add KG of insulation per house depending on material
+  - currently using placeholder value of 1000kg per unit
+- Check if dataset is correctly read in with dots/commas
 
 [[file:DLCA.py]]
 
 - Make call to [[file:make_dataset.py]]
 - Write to output file
 - Generate better plots (radiative forcing, GWP)
+- make_dataset assumes positive CO2bio, DLCA assumes negative
+
+** Missing data
+
+- EcoInvent: Flax, Hemp, Straw, EPS
+- Biogenic CO2: Hemp
+
+
+** Anomalies
+
+#+begin_src python
+df = pd.read_csv("data/Ecoinvent.tsv", sep="\t")
+sum(df['kg CO2-eq']<df['kg CO2'])
+#+end_src
+
+890 / 5421 rows have higher CO2 than CO2-eq
