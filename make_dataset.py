@@ -4,6 +4,14 @@ import matplotlib.pyplot as plt
 
 CURRENT_YEAR = 2023
 INSULATION_PER_UNIT_KG = 1000
+MATERIAL_NAMES = {
+    "cellulose": "Cellulose fibre. inclusive blowing in {GLO}| market for | Cut-off. S",
+    "cork": "Cork slab {GLO}| market for | Cut-off. S",
+    "glass wool": "Glass wool mat {GLO}| market for | Cut-off. S",
+    "stone wool": "Stone wool {GLO}| market for stone wool | Cut-off. S",
+    "XPS": "Polystyrene. extruded {GLO}| market for | Cut-off. S",
+}
+
 
 insulation = pd.read_csv(
     "data/Ecoinvent.tsv",
@@ -13,27 +21,17 @@ insulation = pd.read_csv(
 
 # Type == Transformation or Market - is this new vs retrofit?
 # insulation = insulation[(insulation["Process"] == "Insulation") & (insulation["Type"] == "Market")]
-
-material_names = {
-    "cellulose": "Cellulose fibre, inclusive blowing in {GLO}| market for | Cut-off, S",
-    "cork": "Cork slab {GLO}| market for | Cut-off, S",
-    "glass wool": "Glass wool mat {GLO}| market for | Cut-off, S",
-    "stone wool": "Stone wool {GLO}| market for stone wool | Cut-off, S",
-    "XPS": "Polystyrene, extruded {GLO}| market for | Cut-off, S",
-}
+insulation = insulation[insulation["type"] == "Market"]
 
 
 def make_dataset(
     material,
     building_scenario,
+    total_houses=150000,
     time_horizon=2050,
-    total_houses=100000,
     outfile=None,
 ):
     years = time_horizon - CURRENT_YEAR
-    # dataset = pd.DataFrame(
-    #     index=range(years), columns=["CO2", "CH4", "CO", "N2O", "CO2bio"]
-    # )
     if building_scenario == "normal":
         insulation_per_year = np.array(
             [
@@ -53,13 +51,12 @@ def make_dataset(
         ]
     else:
         raise ValueError("Choose building scenario normal/fast/slow")
-    if material not in material_names.keys():
+    if material not in MATERIAL_NAMES.keys():
         raise ValueError("Material not supported")
     else:
-        print(years, len(insulation_per_year))
         dataset = pd.DataFrame(
             (
-                insulation[insulation["Name"] == material_names[material]][
+                insulation[insulation["Name"] == MATERIAL_NAMES[material]][
                     ["kg CO2", "kg CH4", "kg N2O", "kg CO"]
                 ]
                 .reset_index(drop=True)
@@ -92,15 +89,19 @@ def fast_primitive(n, x):
     return 2 * n / 3 * (x ** (3 / 2))
 
 
-def plot(GHG):
-    plt.plot(np.arange(27) + 2023, df[GHG])
+def plot(
+    material="cellulose",
+    GHG="CO2",
+    houses=150000,
+    time_horizon=2050,
+    scenario="normal",
+):
+    plt.plot(
+        np.arange(time_horizon - 2023) + 2023,
+        make_dataset(material, scenario, houses, time_horizon)["kg " + GHG],
+    )
     plt.xlabel("Years")
-    plt.ylabel(GHG)
+    plt.ylabel("kg " + GHG)
     plt.title("Emissions per Year")
     plt.grid(True)
     plt.show()
-
-
-if __name__ == "__main__":
-    # Code to be executed if the script is run from the command line
-    print("This script is being run from the command line.")
