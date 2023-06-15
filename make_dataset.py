@@ -42,16 +42,15 @@ def make_dataset(
             ]
         )
     elif building_scenario == "fast":
-        insulation_per_year = np.diff(
-            [
-                INSULATION_PER_UNIT_KG
-                * houses_built_per_year(i, total_houses, years)
-                for i in range(years)
-            ],
-            prepend=0,
-        )
+        insulation_per_year = [
+            INSULATION_PER_UNIT_KG * x
+            for x in houses_per_year_fast(total_houses, years)
+        ]
     elif building_scenario == "slow":
-        pass
+        insulation_per_year = [
+            INSULATION_PER_UNIT_KG * x
+            for x in houses_per_year_slow(total_houses, years)
+        ]
     else:
         raise ValueError("Choose building scenario normal/fast/slow")
     if material not in material_names.keys():
@@ -71,25 +70,26 @@ def make_dataset(
     return dataset
 
 
-def sigmoid(x, A, B, C, D):
-    return A / (1 + np.exp(-B * (x - C))) + D
-
-
 def houses_per_year_slow(houses, years):
-    # quadratic: n * x² -> n/3x³
     n = 3 * houses / (years ** 3)
-    print(n)
-    return [n / 3 * ((i + 1) ** 3) - n / 3 * (i ** 3) for i in range(years)]
+    return [
+        slow_primitive(n, i + 1) - slow_primitive(n, i) for i in range(years)
+    ]
 
 
 def houses_per_year_fast(houses, years):
-    # square root: n * sqrt(x) -> 2n/3x^(3/2)
-    n = houses / (2 / 3) * (years ** 3 / 2)
-    print(n)
+    n = 3 * houses / (2 * (years ** (3 / 2)))
     return [
-        n * 2 / (3 * ((i + 1) ** (3 / 2)) - n * 2 / 3 * (i ** (3 / 2)))
-        for i in range(years)
+        fast_primitive(n, i + 1) - fast_primitive(n, i) for i in range(years)
     ]
+
+
+def slow_primitive(n, x):
+    return n / 3 * (x ** 3)
+
+
+def fast_primitive(n, x):
+    return 2 * n / 3 * (x ** (3 / 2))
 
 
 def plot(GHG):
