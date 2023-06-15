@@ -19,7 +19,8 @@ insulation materials (BBIMs)
 - Write to output file
 - Generate better plots (radiative forcing, GWP)
 - make_dataset assumes positive CO2bio, DLCA assumes negative
-
+- how to handle tf of interest and time_horizon for construction (i.e. consider
+  the impact until 2100 of houses constructed until 2050)
 ** Missing data
 
 - EcoInvent: Flax, Hemp, Straw, EPS
