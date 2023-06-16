@@ -15,6 +15,7 @@ insulation materials (BBIMs)
 - Check if dataset is correctly read in with dots/commas
 - Fix placeholder values for rotation time - (model N(r/2, r/4) ?)
 - fix placeholder values for lifetime (30-50 years?)
+- check lifecycle stages which are included now
 
 [[file:DLCA.py]]
 
