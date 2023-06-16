@@ -13,10 +13,11 @@ aBern - CO2 parameters according to Bern carbon cycle-climate model
 a0Bern - CO2 parameters according to Bern carbon cycle-climate model
 tf - TimeFrame in years
 """
-aCH4 = 0.129957
-TauCH4 = 12
 aCO2 = 0.0018088
+aCH4 = 0.129957
 TauCO2 = [172.9, 18.51, 1.186]
+TauCH4 = 12
+TauNO2 = 114
 aBern = [0.259, 0.338, 0.186]
 a0Bern = 0.217
 

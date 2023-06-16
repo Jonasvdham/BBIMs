@@ -7,20 +7,23 @@ insulation materials (BBIMs)
 
 [[file:make_dataset.py]]
 
-- Add CO2_bio (i.e. biogenic carbon values) from KBOB
+- CO2_bio:
   - Currently not counting biogenic CO2 in cellulose as it is recycled
+  - Missing hemp
 - Add KG of insulation per house depending on material
   - currently using placeholder value of 1000kg per unit
 - Check if dataset is correctly read in with dots/commas
+- Fix placeholder values for rotation time - (model N(r/2, r/4) ?)
 
 [[file:DLCA.py]]
 
-- Make call to [[file:make_dataset.py]]
 - Write to output file
 - Generate better plots (radiative forcing, GWP)
 - make_dataset assumes positive CO2bio, DLCA assumes negative
 - how to handle tf of interest and time_horizon for construction (i.e. consider
   the impact until 2100 of houses constructed until 2050)
+- Where did I get the alpha values? They are different from Hoxha e.a. 2020
+
 ** Missing data
 
 - EcoInvent: Flax, Hemp, Straw, EPS

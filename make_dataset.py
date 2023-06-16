@@ -9,29 +9,34 @@ MATERIALS = {
         "name": "Cellulose fibre. inclusive blowing in {GLO}| market for | Cut-off. S",
         "CO2bio": -0,
         "amount": 1000,
+        "rotation": 1,
     },
     "cork": {
         "name": "Cork slab {GLO}| market for | Cut-off. S",
         "CO2bio": -0.496,
         "amount": 1000,
+        "rotation": 11,
     },
-    "flax": {"name": "", "CO2bio": -0.44, "amount": 1000},
-    "hemp": {"name": "", "CO2bio": -0.44, "amount": 1000},
-    "straw": {"name": "", "CO2bio": -0.368, "amount": 1000},
+    "flax": {"name": "", "CO2bio": -0.44, "amount": 1000, "rotation": "0.5"},
+    "hemp": {"name": "", "CO2bio": -0.44, "amount": 1000, "rotation": "0.5"},
+    "straw": {"name": "", "CO2bio": -0.368, "amount": 1000, "rotation": "0.5"},
     "glass wool": {
         "name": "Glass wool mat {GLO}| market for | Cut-off. S",
         "CO2bio": -0,
         "amount": 1000,
+        "rotation": 1,
     },
     "stone wool": {
         "name": "Stone wool {GLO}| market for stone wool | Cut-off. S",
         "CO2bio": -0,
         "amount": 1000,
+        "rotation": 1,
     },
     "XPS": {
         "name": "Polystyrene. extruded {GLO}| market for | Cut-off. S",
         "CO2bio": -0,
         "amount": 1000,
+        "rotation": 1,
     },
 }
 
@@ -49,6 +54,7 @@ def make_dataset(
     building_scenario,
     total_houses=150000,
     time_horizon=2050,
+    timeframe=200,
     outfile=None,
 ):
     years = time_horizon - CURRENT_YEAR
@@ -56,18 +62,26 @@ def make_dataset(
         insulation_per_year = np.array(
             [
                 INSULATION_PER_HOUSE_KG * total_houses / years
-                for i in range(years)
+                if i < years
+                else 0
+                for i in range(timeframe)
             ]
         )
     elif building_scenario == "fast":
         insulation_per_year = [
-            INSULATION_PER_HOUSE_KG * x
-            for x in houses_per_year_fast(total_houses, years)
+            INSULATION_PER_HOUSE_KG
+            * houses_per_year_fast(total_houses, years)[i]
+            if i < years
+            else 0
+            for i in range(timeframe)
         ]
     elif building_scenario == "slow":
         insulation_per_year = [
-            INSULATION_PER_HOUSE_KG * x
-            for x in houses_per_year_slow(total_houses, years)
+            INSULATION_PER_HOUSE_KG
+            * houses_per_year_slow(total_houses, years)[i]
+            if i < years
+            else 0
+            for i in range(timeframe)
         ]
     else:
         raise ValueError("Choose building scenario normal/fast/slow")
@@ -80,13 +94,12 @@ def make_dataset(
                     ["kg CO2", "kg CH4", "kg N2O", "kg CO"]
                 ]
                 .reset_index(drop=True)
-                .loc[[0 for i in range(years)]]
+                .loc[[0 for i in range(timeframe)]]
                 .multiply(insulation_per_year, axis=0)
             )
         )
-        dataset["CO2bio"] = [
-            MATERIALS[material]["CO2bio"] * kg for kg in insulation_per_year
-        ]
+        dataset["CO2bio"] = CO2bio(material, insulation_per_year, timeframe)
+
     return dataset.reset_index(drop=True)
 
 
@@ -102,6 +115,20 @@ def houses_per_year_slow(houses, years):
         [(houses / (years ** 2)) * (x + 1) ** 2 for x in range(years)],
         prepend=0,
     )
+
+
+def CO2bio(material, insulation_per_year, timeframe):
+    CO2bio_per_year = np.zeros(
+        len(insulation_per_year) + MATERIALS[material]["rotation"]
+    )
+    for i, kg in enumerate(insulation_per_year):
+        for j in range(MATERIALS[material]["rotation"]):
+            CO2bio_per_year[i + j] += (
+                kg
+                * MATERIALS[material]["CO2bio"]
+                / MATERIALS[material]["rotation"]
+            )
+    return CO2bio_per_year[:timeframe]
 
 
 def plot(
