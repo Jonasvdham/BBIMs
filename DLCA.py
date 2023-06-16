@@ -85,11 +85,16 @@ def plot(
     inst, cum = DLCA(
         material, building_scenario, total_houses, time_horizon, time_frame
     )
-    x = np.arange(time_frame)
+    x = np.arange(time_frame) + 2023
     if plottype == "inst":
         plt.plot(x, inst)
     else:
         plt.plot(x, cum)
+    plt.xlabel("Years")
+    plt.ylabel("CO2")
+    plt.title("Emissions per Year")
+    plt.grid(True)
+
     plt.show()
 
 
