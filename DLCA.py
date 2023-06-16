@@ -93,4 +93,4 @@ def plot(
     plt.show()
 
 
-# plot('cork', 'fast', 150000, 2050, 27)
+# plot('cork', 'fast', 150000, 2050, 27, 'inst')

@@ -10,33 +10,56 @@ MATERIALS = {
         "CO2bio": -0,
         "amount": 1000,
         "rotation": 1,
+        "lifetime": 30,
     },
     "cork": {
         "name": "Cork slab {GLO}| market for | Cut-off. S",
         "CO2bio": -0.496,
         "amount": 1000,
         "rotation": 11,
+        "lifetime": 30,
     },
-    "flax": {"name": "", "CO2bio": -0.44, "amount": 1000, "rotation": "0.5"},
-    "hemp": {"name": "", "CO2bio": -0.44, "amount": 1000, "rotation": "0.5"},
-    "straw": {"name": "", "CO2bio": -0.368, "amount": 1000, "rotation": "0.5"},
+    "flax": {
+        "name": "",
+        "CO2bio": -0.44,
+        "amount": 1000,
+        "rotation": "0.5",
+        "lifetime": 30,
+    },
+    "hemp": {
+        "name": "",
+        "CO2bio": -0.44,
+        "amount": 1000,
+        "rotation": "0.5",
+        "lifetime": 30,
+    },
+    "straw": {
+        "name": "",
+        "CO2bio": -0.368,
+        "amount": 1000,
+        "rotation": "0.5",
+        "lifetime": 30,
+    },
     "glass wool": {
         "name": "Glass wool mat {GLO}| market for | Cut-off. S",
         "CO2bio": -0,
         "amount": 1000,
         "rotation": 1,
+        "lifetime": 30,
     },
     "stone wool": {
         "name": "Stone wool {GLO}| market for stone wool | Cut-off. S",
         "CO2bio": -0,
         "amount": 1000,
         "rotation": 1,
+        "lifetime": 30,
     },
     "XPS": {
         "name": "Polystyrene. extruded {GLO}| market for | Cut-off. S",
         "CO2bio": -0,
         "amount": 1000,
         "rotation": 1,
+        "lifetime": 30,
     },
 }
 
@@ -98,9 +121,18 @@ def make_dataset(
                 .multiply(insulation_per_year, axis=0)
             )
         )
-        dataset["CO2bio"] = CO2bio(material, insulation_per_year, timeframe)
+        dataset = pd.DataFrame(
+            np.zeros((MATERIALS[material]["lifetime"], 4)),
+            columns=dataset.columns,
+        ).append(dataset, ignore_index=True)
+        dataset["CO2bio"] = CO2bio(
+            material,
+            insulation_per_year,
+            MATERIALS[material]["lifetime"],
+            timeframe,
+        )
 
-    return dataset.reset_index(drop=True)
+    return dataset.iloc[:timeframe].reset_index(drop=True)
 
 
 def houses_per_year_fast(houses, years):
@@ -117,9 +149,9 @@ def houses_per_year_slow(houses, years):
     )
 
 
-def CO2bio(material, insulation_per_year, timeframe):
+def CO2bio(material, insulation_per_year, lifetime, timeframe):
     CO2bio_per_year = np.zeros(
-        len(insulation_per_year) + MATERIALS[material]["rotation"]
+        len(insulation_per_year) + MATERIALS[material]["rotation"] + lifetime
     )
     for i, kg in enumerate(insulation_per_year):
         for j in range(MATERIALS[material]["rotation"]):
@@ -128,7 +160,7 @@ def CO2bio(material, insulation_per_year, timeframe):
                 * MATERIALS[material]["CO2bio"]
                 / MATERIALS[material]["rotation"]
             )
-    return CO2bio_per_year[:timeframe]
+    return CO2bio_per_year[: timeframe + lifetime]
 
 
 def plot(
