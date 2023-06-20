@@ -74,28 +74,36 @@ def C_CH4(t):
     return np.exp(-t / TauCH4)
 
 
-def plot(
-    material,
+def plot_GWI(
+    materials,
     building_scenario,
     total_houses,
     time_horizon,
     time_frame,
-    plottype=None,
+    plottype="cum",
 ):
-    inst, cum = DLCA(
-        material, building_scenario, total_houses, time_horizon, time_frame
-    )
+    GWI_dict = {}
+    for material in materials:
+        inst, cum = DLCA(
+            material, building_scenario, total_houses, time_horizon, time_frame
+        )
+        GWI_dict[material] = {"inst": inst, "cum": cum}
     x = np.arange(time_frame) + 2023
     if plottype == "inst":
-        plt.plot(x, inst)
+        for material in materials:
+            plt.plot(x, GWI_dict[material]["inst"], label=material)
+    elif plottype == "cum":
+        for material in materials:
+            plt.plot(x, GWI_dict[material]["cum"], label=material)
     else:
-        plt.plot(x, cum)
+        return "invalid type"
     plt.xlabel("Years")
-    plt.ylabel("CO2")
-    plt.title("Emissions per Year")
+    plt.ylabel("GWI" + plottype)
+    plt.legend()
+    plt.title("Global warming Impact (" + plottype + ")")
     plt.grid(True)
 
     plt.show()
 
 
-# plot('cork', 'fast', 150000, 2050, 27, 'inst')
+# plot_GWI(['cork', 'cellulose], 'fast', 150000, 2050, 27, 'inst')

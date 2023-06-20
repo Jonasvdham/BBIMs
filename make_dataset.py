@@ -10,59 +10,58 @@ MATERIALS = {
         "CO2bio": -0,
         "amount": 1000,
         "rotation": 1,
-        "lifetime": 30,
+        "lifetime": 50,
     },
     "cork": {
         "name": "Cork slab {GLO}| market for | Cut-off. S",
         "CO2bio": -0.496,
         "amount": 1000,
         "rotation": 11,
-        "lifetime": 30,
+        "lifetime": 50,
     },
     "flax": {
         "name": "",
         "CO2bio": -0.44,
         "amount": 1000,
         "rotation": "1",
-        "lifetime": 30,
+        "lifetime": 50,
     },
     "hemp": {
         "name": "",
         "CO2bio": -0.44,
         "amount": 1000,
         "rotation": "1",
-        "lifetime": 30,
+        "lifetime": 50,
     },
     "straw": {
         "name": "",
         "CO2bio": -0.368,
         "amount": 1000,
         "rotation": "1",
-        "lifetime": 30,
+        "lifetime": 50,
     },
     "glass wool": {
         "name": "Glass wool mat {GLO}| market for | Cut-off. S",
         "CO2bio": -0,
         "amount": 1000,
         "rotation": 1,
-        "lifetime": 30,
+        "lifetime": 50,
     },
     "stone wool": {
         "name": "Stone wool {GLO}| market for stone wool | Cut-off. S",
         "CO2bio": -0,
         "amount": 1000,
         "rotation": 1,
-        "lifetime": 30,
+        "lifetime": 50,
     },
     "XPS": {
         "name": "Polystyrene. extruded {GLO}| market for | Cut-off. S",
         "CO2bio": -0,
         "amount": 1000,
         "rotation": 1,
-        "lifetime": 30,
+        "lifetime": 50,
     },
 }
-
 
 insulation = pd.read_csv(
     "data/Ecoinvent.tsv",
@@ -81,18 +80,20 @@ def make_dataset(
     outfile=None,
 ):
     years = time_horizon - CURRENT_YEAR
+    if material not in MATERIALS.keys():
+        raise ValueError("Material not supported")
     if building_scenario == "normal":
         insulation_per_year = np.array(
             [
-                INSULATION_PER_HOUSE_KG * total_houses / years
+                MATERIALS[material]["amount"] * total_houses / years
                 if i < years
-                else 0
+                else 0.0
                 for i in range(timeframe)
             ]
         )
     elif building_scenario == "fast":
         insulation_per_year = [
-            INSULATION_PER_HOUSE_KG
+            MATERIALS[material]["amount"]
             * houses_per_year_fast(total_houses, years)[i]
             if i < years
             else 0
@@ -100,37 +101,49 @@ def make_dataset(
         ]
     elif building_scenario == "slow":
         insulation_per_year = [
-            INSULATION_PER_HOUSE_KG
+            MATERIALS[material]["amount"]
             * houses_per_year_slow(total_houses, years)[i]
             if i < years
-            else 0
+            else 0.0
             for i in range(timeframe)
         ]
     else:
         raise ValueError("Choose building scenario normal/fast/slow")
-    if material not in MATERIALS.keys():
-        raise ValueError("Material not supported")
-    else:
-        dataset = pd.DataFrame(
-            (
-                insulation[insulation["Name"] == MATERIALS[material]["name"]][
-                    ["kg CO2", "kg CH4", "kg N2O", "kg CO"]
-                ]
-                .reset_index(drop=True)
-                .loc[[0 for i in range(timeframe)]]
-                .multiply(insulation_per_year, axis=0)
-            )
+
+    dataset = pd.DataFrame(
+        (
+            insulation[insulation["Name"] == MATERIALS[material]["name"]][
+                ["kg CO2", "kg CH4", "kg N2O", "kg CO"]
+            ]
+            .reset_index(drop=True)
+            .loc[[0 for i in range(timeframe)]]
+            .multiply(insulation_per_year, axis=0)
         )
-        dataset = pd.DataFrame(
-            np.zeros((MATERIALS[material]["lifetime"], 4)),
-            columns=dataset.columns,
-        ).append(dataset, ignore_index=True)
-        dataset["CO2bio"] = CO2bio(
-            material,
-            insulation_per_year,
-            MATERIALS[material]["lifetime"],
-            timeframe,
-        )
+    )
+    # Do I want to prepend 0 rows for the lifetime of the building? Maybe only if they are plant based materials...
+    # dataset = pd.DataFrame(
+    #     np.zeros((MATERIALS[material]["lifetime"], 4)), columns=dataset.columns
+    # ).append(dataset, ignore_index=True)
+    dataset["CO2bio"] = CO2bio(
+        material,
+        insulation_per_year,
+        MATERIALS[material]["lifetime"],
+        timeframe,
+    )
+    # subtract biogenic co2 from kg co2
+    biogenic = [
+        insulation_per_year[i] * MATERIALS[material]["CO2bio"]
+        if i < years
+        else 0.0
+        for i in range(len(insulation_per_year))
+    ]
+    dataset["kg CO2"] = dataset["kg CO2"] + biogenic
+    dataset["kg CO2"] = (
+        dataset["kg CO2"]
+        + np.append(np.zeros(MATERIALS[material]["lifetime"]), biogenic)[
+            :timeframe
+        ]
+    )
 
     return dataset.iloc[:timeframe].reset_index(drop=True)
 
@@ -151,7 +164,7 @@ def houses_per_year_slow(houses, years):
 
 def CO2bio(material, insulation_per_year, lifetime, timeframe):
     CO2bio_per_year = np.zeros(
-        len(insulation_per_year) + MATERIALS[material]["rotation"] + lifetime
+        len(insulation_per_year) + MATERIALS[material]["rotation"]
     )
     for i, kg in enumerate(insulation_per_year):
         for j in range(MATERIALS[material]["rotation"]):
@@ -160,7 +173,7 @@ def CO2bio(material, insulation_per_year, lifetime, timeframe):
                 * MATERIALS[material]["CO2bio"]
                 / MATERIALS[material]["rotation"]
             )
-    return CO2bio_per_year[: timeframe + lifetime]
+    return CO2bio_per_year[:timeframe]
 
 
 def plot(
@@ -179,3 +192,6 @@ def plot(
     plt.title("Emissions per Year")
     plt.grid(True)
     plt.show()
+
+
+# plot_GWI(['cork', 'stone wool', 'glass wool'], 'fast', 150000, 2050, 27, 'inst')

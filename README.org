@@ -3,39 +3,18 @@
 Thesis research project into the carbon-removal potential of bio-based
 insulation materials (BBIMs)
 
-* TODOs
-
-[[file:make_dataset.py]]
-
-- CO2_bio:
-  - Currently not counting biogenic CO2 in cellulose as it is recycled
-  - Missing hemp
-- Add KG of insulation per house depending on material
-  - currently using placeholder value of 1000kg per unit
-- Check if dataset is correctly read in with dots/commas
-- Fix placeholder values for rotation time - (model N(r/2, r/4) ?)
-  - check if loop i in range(rotation) works for species with r=0.5
-- fix placeholder values for lifetime (30-50 years?)
-- check lifecycle stages which are included now
-  - a1-a3 from Ecoinvent.tsv
-  - C from carbon content (KBOB)
-    - how does this work for non-biobased?
-  - D: can make some assumptions
+* DLCA
 
 [[file:DLCA.py]]
 
-- Write to output file
-- Generate better plots (radiative forcing, GWP)
+Notes
 - make_dataset assumes positive CO2bio, DLCA assumes negative
-- how to handle tf of interest and time_horizon for construction (i.e. consider
-  the impact until 2100 of houses constructed until 2050)
 - Where did I get the alpha values? They are different from Hoxha e.a. 2020
 
 ** Missing data
 
 - EcoInvent: Flax, Hemp, Straw, EPS
 - Biogenic CO2: Hemp
-
 
 ** Anomalies
 
@@ -45,3 +24,33 @@ sum(df['kg CO2-eq']<df['kg CO2'])
 #+end_src
 
 890 / 5421 rows have higher CO2 than CO2-eq
+
+** TODO
+
+- Write to output file
+- Generate better plots (radiative forcing, GWP)
+- Decide how to handle tf of interest and time_horizon for construction (i.e.
+  consider the impact until 2100 of houses constructed until 2050)
+
+* Make Dataset
+
+[[file:make_dataset.py]]
+
+Notes
+- CO2_bio:
+  - Currently not counting biogenic CO2 in cellulose as it is recycled
+  - Missing hemp
+- Add KG of insulation per house depending on material
+  - currently using placeholder value of 1000kg per unit
+- Check if dataset is correctly read in with dots/commas
+- check lifecycle stages which are included now
+  - a1-a3 from Ecoinvent.tsv
+  - C from carbon content (KBOB)
+    - how does this work for non-biobased?
+  - D: can make some assumptions
+
+** TODO
+
+- Add KG of insulation per house depending on material
+- Fix placeholder values for rotation time - (model N(r/2, r/4) ?)
+  - check if loop i in range(rotation) works for species with r=0.5
