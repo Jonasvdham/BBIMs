@@ -40,11 +40,11 @@ MATERIALS = {
         "lifetime": 50,
     },
     "straw": {
-        "name": "",
+        "name": "Straw {CH}| wheat production. Swiss integrated production. intensive | Cut-off. S",
         "lambda": 0.44,
         "density": 100,
         "CO2bio": -0.368,
-        "rotation": "1",
+        "rotation": 1,
         "lifetime": 50,
     },
     "glass wool": {
@@ -80,9 +80,35 @@ insulation = pd.read_csv(
 )
 insulation = insulation[insulation["type"] == "Market"]
 
+insulation = insulation.append(
+    pd.DataFrame(
+        {
+            "Category": "Material",
+            "Family": "Agricultural",
+            "Process": "Plant production",
+            "Sub-process": "Cereals",
+            "type": "Transformation",
+            "Name": "Straw {CH}| wheat production. Swiss integrated production. intensive | Cut-off. S",
+            "FU": "kg",
+            "kg CO2": 0.020474577,
+            "kg CH4": 4.51975e-05,
+            "kg N2O": 7.79062e-05,
+            "kg CO": 0.000100325,
+        },
+        index=[len(insulation)],
+    )
+)
+
 
 def make_datasets(
-    materials=["cellulose", "cork", "glass wool", "stone wool", "XPS"],
+    materials=[
+        "straw",
+        "cellulose",
+        "cork",
+        "glass wool",
+        "stone wool",
+        "XPS",
+    ],
     building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,
@@ -150,6 +176,10 @@ def make_dataset(
         MATERIALS[material]["lifetime"],
         timeframe,
     )
+    dataset["BiogenicPulse"] = np.append(
+        np.zeros(MATERIALS[material]["lifetime"]),
+        [i * MATERIALS[material]["CO2bio"] for i in insulation_per_year],
+    )[:timeframe]
 
     return dataset.iloc[:timeframe].reset_index(drop=True)
 

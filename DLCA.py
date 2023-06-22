@@ -20,6 +20,7 @@ TauCH4 = 12
 TauNO2 = 114
 aBern = [0.259, 0.338, 0.186]
 a0Bern = 0.217
+EMISSIONFACTOR = 0.1
 
 
 def DLCA(
@@ -61,7 +62,12 @@ def GWI(dataset, timeframe, DCF_CO2_ti, DCF_CH4_ti):
     GWI_inst = pd.DataFrame(columns=["CO2", "CH4"], index=range(timeframe))
     for t in range(timeframe):
         GWI_inst["CO2"][t] = np.sum(
-            (dataset["kg CO2"][t] + dataset["CO2bio"][t]) * DCF_CO2_ti[:, t]
+            (
+                dataset["kg CO2"][t]
+                + dataset["CO2bio"][t]
+                + EMISSIONFACTOR * dataset["BiogenicPulse"][t]
+            )
+            * DCF_CO2_ti[:, t]
         )
         GWI_inst["CH4"][t] = np.sum(dataset["kg CH4"][t] * DCF_CH4_ti[:, t])
     return GWI_inst
@@ -113,3 +119,4 @@ def plot_GWI(
 
 
 # plot_GWI(['cork', 'stone wool', 'glass wool'], 'fast', 150000, 2050, 27, 'inst')
+# plot_GWI(['straw','cork', 'stone wool', 'glass wool'], 'fast', 150000, 2050, 200, 'inst')
