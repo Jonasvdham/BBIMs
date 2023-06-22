@@ -20,7 +20,7 @@ TauCH4 = 12
 TauNO2 = 114
 aBern = [0.259, 0.338, 0.186]
 a0Bern = 0.217
-EMISSIONFACTOR = 0.1
+EMISSIONFACTOR = 1
 
 
 def DLCA(
