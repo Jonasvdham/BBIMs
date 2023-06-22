@@ -3,6 +3,28 @@
 Thesis research project into the carbon-removal potential of bio-based
 insulation materials (BBIMs)
 
+* Demo
+
+housing scenarios
+#+begin_src python
+houses_per_year_slow(150000, 27)
+houses_per_year_fast(150000, 27)
+#+end_src
+
+Large differences between cork / cellulose / stone wool
+#+begin_src python
+dataset = make_datasets()
+dataset['cork']
+dataset['stone wool']
+dataset['cellulose']
+#+end_src
+
+Plotting them:
+#+begin_src python
+plot_GWI(['cork', 'cellulose', 'stone wool'], building_scenario='normal', plottype='inst')
+plot_GWI(['cork', 'cellulose', 'stone wool'], building_scenario='normal', plottype='cum')
+#+end_src
+
 * DLCA
 
 [[file:DLCA.py]]

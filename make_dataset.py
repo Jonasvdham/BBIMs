@@ -203,6 +203,3 @@ def plot(
     plt.title("Emissions per Year")
     plt.grid(True)
     plt.show()
-
-
-# plot_GWI(['cork', 'stone wool', 'glass wool'], 'fast', 150000, 2050, 27, 'inst')

@@ -22,7 +22,13 @@ aBern = [0.259, 0.338, 0.186]
 a0Bern = 0.217
 
 
-def DLCA(material, building_scenario, total_houses, time_horizon, time_frame):
+def DLCA(
+    material,
+    building_scenario="normal",
+    total_houses=150000,
+    time_horizon=2050,
+    time_frame=200,
+):
     dataset = make_dataset(
         material, building_scenario, total_houses, time_horizon
     )
@@ -76,10 +82,10 @@ def C_CH4(t):
 
 def plot_GWI(
     materials,
-    building_scenario,
-    total_houses,
-    time_horizon,
-    time_frame,
+    building_scenario="normal",
+    total_houses=150000,
+    time_horizon=2050,
+    time_frame=200,
     plottype="cum",
 ):
     GWI_dict = {}
@@ -106,4 +112,4 @@ def plot_GWI(
     plt.show()
 
 
-# plot_GWI(['cork', 'cellulose], 'fast', 150000, 2050, 27, 'inst')
+# plot_GWI(['cork', 'stone wool', 'glass wool'], 'fast', 150000, 2050, 27, 'inst')
