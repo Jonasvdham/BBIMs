@@ -49,8 +49,43 @@ Notes
     - how does this work for non-biobased?
   - D: can make some assumptions
 
+**  CO2 issues
+
+*** Prepend 0s to extend emissions
+
+#+begin_src python
+# Do I want to prepend 0 rows for the lifetime of the building? Maybe only if they are plant based materials...
+dataset = pd.DataFrame(
+    np.zeros((MATERIALS[material]["lifetime"], 4)), columns=dataset.columns
+).append(dataset, ignore_index=True)
+#+end_src
+
+*** CO2bio
+It seems the EcoInvent data for BBIMs (CO2) is quite high. I thought biogenic
+CO2 might be included? I expect not, as it should just be phase A1-A3 but in
+case it needs to be subtracted in make_dataset:
+
+#+begin_src python
+# subtract biogenic co2 from kg co2
+biogenic = [
+    insulation_per_year[i] * MATERIALS[material]["CO2bio"]
+    if i < years
+    else 0.0
+    for i in range(len(insulation_per_year))
+]
+dataset["kg CO2"] = dataset["kg CO2"] + biogenic
+dataset["kg CO2"] = (
+    dataset["kg CO2"]
+    + np.append(np.zeros(MATERIALS[material]["lifetime"]), biogenic)[
+        :timeframe
+    ]
+)
+#+end_src
+
 ** TODO
 
 - Add KG of insulation per house depending on material
 - Fix placeholder values for rotation time - (model N(r/2, r/4) ?)
   - check if loop i in range(rotation) works for species with r=0.5
+- Remove placeholder values
+  - M2 Facades, Rvalue, lambda values

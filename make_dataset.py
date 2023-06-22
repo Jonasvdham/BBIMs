@@ -4,60 +4,70 @@ import matplotlib.pyplot as plt
 
 CURRENT_YEAR = 2023
 INSULATION_PER_HOUSE_KG = 1000
+M2FACADE = 4  # placeholder
+RVALUE = 4.5  # placeholder
 MATERIALS = {
     "cellulose": {
         "name": "Cellulose fibre. inclusive blowing in {GLO}| market for | Cut-off. S",
+        "lambda": 0.038,
+        "density": 52,
         "CO2bio": -0,
-        "amount": 1000,
         "rotation": 1,
         "lifetime": 50,
     },
     "cork": {
         "name": "Cork slab {GLO}| market for | Cut-off. S",
+        "lambda": 0.04,  # placeholder
+        "density": 100,  # placeholder
         "CO2bio": -0.496,
-        "amount": 1000,
         "rotation": 11,
         "lifetime": 50,
     },
     "flax": {
         "name": "",
+        "lambda": 0.04,  # placeholder
+        "density": 40,
         "CO2bio": -0.44,
-        "amount": 1000,
-        "rotation": "1",
+        "rotation": 1,
         "lifetime": 50,
     },
     "hemp": {
         "name": "",
+        "lambda": 0.041,
+        "density": 36,
         "CO2bio": -0.44,
-        "amount": 1000,
-        "rotation": "1",
+        "rotation": 1,
         "lifetime": 50,
     },
     "straw": {
         "name": "",
+        "lambda": 0.44,
+        "density": 100,
         "CO2bio": -0.368,
-        "amount": 1000,
         "rotation": "1",
         "lifetime": 50,
     },
     "glass wool": {
         "name": "Glass wool mat {GLO}| market for | Cut-off. S",
+        "lambda": 0.036,
+        "density": 22,
         "CO2bio": -0,
-        "amount": 1000,
         "rotation": 1,
         "lifetime": 50,
     },
     "stone wool": {
         "name": "Stone wool {GLO}| market for stone wool | Cut-off. S",
+        "lambda": 0.036,
+        "density": 29.5,
         "CO2bio": -0,
-        "amount": 1000,
         "rotation": 1,
         "lifetime": 50,
     },
     "XPS": {
         "name": "Polystyrene. extruded {GLO}| market for | Cut-off. S",
+        "lambda": 0.033,
+        "density": 40,  # placeholder
         "CO2bio": -0,
-        "amount": 1000,
         "rotation": 1,
         "lifetime": 50,
     },
@@ -71,38 +81,52 @@ insulation = pd.read_csv(
 insulation = insulation[insulation["type"] == "Market"]
 
 
+def make_datasets(
+    materials=["cellulose", "cork", "glass wool", "stone wool", "XPS"],
+    building_scenario="normal",
+    total_houses=150000,
+    time_horizon=2050,
+    timeframe=200,
+):
+    dataset = {}
+    for material in materials:
+        df = make_dataset(
+            material, building_scenario, total_houses, time_horizon, timeframe
+        )
+        dataset[material] = df
+    return dataset
+
+
 def make_dataset(
     material,
     building_scenario,
     total_houses=150000,
     time_horizon=2050,
     timeframe=200,
-    outfile=None,
 ):
-    years = time_horizon - CURRENT_YEAR
     if material not in MATERIALS.keys():
         raise ValueError("Material not supported")
+
+    years = time_horizon - CURRENT_YEAR
+    mass_per_house = insul_per_house(material)
+
     if building_scenario == "normal":
         insulation_per_year = np.array(
             [
-                MATERIALS[material]["amount"] * total_houses / years
-                if i < years
-                else 0.0
+                mass_per_house * total_houses / years if i < years else 0.0
                 for i in range(timeframe)
             ]
         )
     elif building_scenario == "fast":
         insulation_per_year = [
-            MATERIALS[material]["amount"]
-            * houses_per_year_fast(total_houses, years)[i]
+            mass_per_house * houses_per_year_fast(total_houses, years)[i]
             if i < years
             else 0
             for i in range(timeframe)
         ]
     elif building_scenario == "slow":
         insulation_per_year = [
-            MATERIALS[material]["amount"]
-            * houses_per_year_slow(total_houses, years)[i]
+            mass_per_house * houses_per_year_slow(total_houses, years)[i]
             if i < years
             else 0.0
             for i in range(timeframe)
@@ -120,29 +144,11 @@ def make_dataset(
             .multiply(insulation_per_year, axis=0)
         )
     )
-    # Do I want to prepend 0 rows for the lifetime of the building? Maybe only if they are plant based materials...
-    # dataset = pd.DataFrame(
-    #     np.zeros((MATERIALS[material]["lifetime"], 4)), columns=dataset.columns
-    # ).append(dataset, ignore_index=True)
     dataset["CO2bio"] = CO2bio(
         material,
         insulation_per_year,
         MATERIALS[material]["lifetime"],
         timeframe,
-    )
-    # subtract biogenic co2 from kg co2
-    biogenic = [
-        insulation_per_year[i] * MATERIALS[material]["CO2bio"]
-        if i < years
-        else 0.0
-        for i in range(len(insulation_per_year))
-    ]
-    dataset["kg CO2"] = dataset["kg CO2"] + biogenic
-    dataset["kg CO2"] = (
-        dataset["kg CO2"]
-        + np.append(np.zeros(MATERIALS[material]["lifetime"]), biogenic)[
-            :timeframe
-        ]
     )
 
     return dataset.iloc[:timeframe].reset_index(drop=True)
@@ -160,6 +166,11 @@ def houses_per_year_slow(houses, years):
         [(houses / (years ** 2)) * (x + 1) ** 2 for x in range(years)],
         prepend=0,
     )
+
+
+def insul_per_house(material):
+    volume = M2FACADE * RVALUE * MATERIALS[material]["lambda"]
+    return volume * MATERIALS[material]["density"]
 
 
 def CO2bio(material, insulation_per_year, lifetime, timeframe):
