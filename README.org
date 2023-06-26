@@ -53,6 +53,8 @@ sum(df['kg CO2-eq']<df['kg CO2'])
 - Generate better plots (radiative forcing, GWP)
 - Decide how to handle tf of interest and time_horizon for construction (i.e.
   consider the impact until 2100 of houses constructed until 2050)
+- Check all GHGs are properly taken into account (e.g. CO turns into CO2)
+- Gather crop rotation periods
 
 * Make Dataset
 
