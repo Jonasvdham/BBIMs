@@ -62,17 +62,14 @@ def DCF(tf):
 
 def GWI(dataset, timeframe):
     DCF_CO2_ti, DCF_CH4_ti = DCF(timeframe)
-    GWI_inst = pd.DataFrame(columns=["CO2", "CH4"], index=range(timeframe))
+    GWI_inst = pd.DataFrame(np.zeros((timeframe, 2)), columns=["CO2", "CH4"])
     for t in range(timeframe):
-        GWI_inst["CO2"][t] = np.sum(
-            (
-                dataset["CO2"][t]
-                + dataset["CO2bio"][t]
-                # TBD how EoL works
-                # EMISSIONFACTOR * dataset["BiogenicPulse"][t]
-            )
-            * DCF_CO2_ti[:, t]
-        )
+        GWI_inst["CO2"] += (
+            dataset["CO2"][t]
+            + dataset["CO2bio"][t]
+            # TBD how EoL works
+            # EMISSIONFACTOR * dataset["BiogenicPulse"][t]
+        ) * DCF_CO2_ti[t]
         GWI_inst["CH4"][t] = np.sum(dataset["CH4"][t] * DCF_CH4_ti[:, t])
     return GWI_inst
 
