@@ -13,6 +13,11 @@ MATERIALS = {
         "CO2bio": -0,
         "rotation": 1,
         "lifetime": 50,
+        "waste": [
+            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
+            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
+            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
+        ],
     },
     "cork": {  # Ecoinvent
         "name": "Cork slab {RER}| production | Cut-off, S",
@@ -21,6 +26,11 @@ MATERIALS = {
         "CO2bio": -0.496,
         "rotation": 11,
         "lifetime": 50,
+        "waste": [
+            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
+            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
+            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
+        ],
     },
     "flax": {
         "name": "",
@@ -29,6 +39,11 @@ MATERIALS = {
         "CO2bio": -0.44,
         "rotation": 1,
         "lifetime": 50,
+        "waste": [
+            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
+            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
+            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
+        ],
     },
     "hemp": {
         "name": "",
@@ -37,6 +52,11 @@ MATERIALS = {
         "CO2bio": -0.44,
         "rotation": 1,
         "lifetime": 50,
+        "waste": [
+            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
+            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
+            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
+        ],
     },
     "straw": {  # Ecoinvent
         "name": "Straw {CH}| wheat production, Swiss integrated production, extensive | Cut-off, S",
@@ -45,6 +65,11 @@ MATERIALS = {
         "CO2bio": -0.368,
         "rotation": 1,
         "lifetime": 50,
+        "waste": [
+            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
+            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
+            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
+        ],
     },
     "glass wool": {  # Ecoinvent
         "name": "Glass wool mat {CH}| production | Cut-off, S",
@@ -53,6 +78,11 @@ MATERIALS = {
         "CO2bio": -0,
         "rotation": 1,
         "lifetime": 50,
+        "waste": [
+            "Waste mineral wool {Europe without Switzerland}| market for waste mineral wool | Cut-off, S",
+            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, collection for final disposal | Cut-off, S",
+            "Waste mineral wool, for final disposal {Europe without Switzerland}| treatment of waste mineral wool, inert material landfill | Cut - off, S",
+        ],
     },
     "stone wool": {  # Ecoinvent
         "name": "Stone wool {CH}| stone wool production | Cut-off, S",
@@ -61,6 +91,11 @@ MATERIALS = {
         "CO2bio": -0,
         "rotation": 1,
         "lifetime": 50,
+        "waste": [
+            "Waste mineral wool {Europe without Switzerland}| market for waste mineral wool | Cut-off, S",
+            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, collection for final disposal | Cut-off, S",
+            "Waste mineral wool, for final disposal {Europe without Switzerland}| treatment of waste mineral wool, inert material landfill | Cut - off, S",
+        ],
     },
     "XPS": {  # Ecoinvent
         "name": "Polystyrene, extruded {RER}| polystyrene production, extruded, CO2 blown | Cut-off, S",
@@ -69,13 +104,20 @@ MATERIALS = {
         "CO2bio": -0,
         "rotation": 1,
         "lifetime": 50,
+        "waste": [
+            "Waste polystyrene {Europe without Switzerland}| market for waste polystyrene | Cut-off, S",
+            "Waste expanded polystyrene {CH}| treatment of, municipal incineration | Cut-off, S",
+            "Waste polystyrene {Europe without Switzerland}| treatment of waste polystyrene, sanitary landfill | Cut-off, S",
+        ],
     },
 }
 
-RAW_DATA = pd.read_csv("data/ecoinvent_material.csv", sep=";")
-RAW_DATA[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = RAW_DATA[
+MATERIAL_DATA = pd.read_csv("data/ecoinvent_material.csv", sep=";")
+MATERIAL_DATA[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = MATERIAL_DATA[
     ["CO2-eq", "CO2", "CH4", "N2O", "CO"]
 ].apply(lambda x: x.str.replace(",", ".").astype(float))
+
+WASTE_DATA = pd.read_csv("data/ecoinvent_waste.csv", sep=";")
 
 
 def make_datasets(
@@ -133,9 +175,9 @@ def make_dataset(
 
     dataset = pd.DataFrame(
         (
-            RAW_DATA[RAW_DATA["Name"] == MATERIALS[material]["name"]][
-                ["CO2", "CH4", "N2O", "CO"]
-            ]
+            MATERIAL_DATA[
+                MATERIAL_DATA["Name"] == MATERIALS[material]["name"]
+            ][["CO2", "CH4", "N2O", "CO"]]
             .reset_index(drop=True)
             .loc[[0 for i in range(timeframe)]]
             .multiply(insulation_per_year, axis=0)
