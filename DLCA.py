@@ -70,7 +70,7 @@ def GWI(dataset, timeframe):
             # TBD how EoL works
             # EMISSIONFACTOR * dataset["BiogenicPulse"][t]
         ) * DCF_CO2_ti[t]
-        GWI_inst["CH4"][t] = np.sum(dataset["CH4"][t] * DCF_CH4_ti[:, t])
+        GWI_inst["CH4"] += dataset["CH4"][t] * DCF_CH4_ti[t]
     return GWI_inst
 
 
