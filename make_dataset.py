@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 CURRENT_YEAR = 2023
 M2FACADE = 4  # placeholder
 RVALUE = 3.5  # placeholder
+BUILDING_LIFETIME = 75
 MATERIALS = {
     "cellulose": {  # Ecoinvent
         "name": "Cellulose fibre, inclusive blowing in {CH}| production | Cut-off, S",
@@ -118,6 +119,9 @@ MATERIAL_DATA[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = MATERIAL_DATA[
 ].apply(lambda x: x.str.replace(",", ".").astype(float))
 
 WASTE_DATA = pd.read_csv("data/ecoinvent_waste.csv", sep=";")
+WASTE_DATA[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = WASTE_DATA[
+    ["CO2-eq", "CO2", "CH4", "N2O", "CO"]
+].apply(lambda x: x.str.replace(",", ".").astype(float))
 
 
 def make_datasets(
@@ -126,53 +130,45 @@ def make_datasets(
     total_houses=150000,
     time_horizon=2050,
     timeframe=200,
+    waste_scenario=0,
 ):
     dataset = {}
     for material in materials:
         df = make_dataset(
-            material, building_scenario, total_houses, time_horizon, timeframe
+            material,
+            building_scenario,
+            total_houses,
+            time_horizon,
+            timeframe,
+            waste_scenario,
         )
         dataset[material] = df
     return dataset
 
 
 def make_dataset(
-    material,
-    building_scenario,
+    material="straw",
+    building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,
     timeframe=200,
+    waste_scenario=0,
 ):
     if material not in MATERIALS.keys():
         raise ValueError("Material not supported")
 
     years = time_horizon - CURRENT_YEAR
     mass_per_house = insulation_per_house(material)
+    ipy = insulation_per_year(
+        building_scenario, mass_per_house, total_houses, years, timeframe
+    )
+    dataset = moduleA(material, timeframe, ipy)
+    dataset += moduleCD(material, timeframe, ipy, waste_scenario)
+    # dataset = moduleB(material, timeframe, ipy, dataset)
+    return dataset.iloc[:timeframe].reset_index(drop=True)
 
-    if building_scenario == "normal":
-        insulation_per_year = np.array(
-            [
-                mass_per_house * total_houses / years if i < years else 0.0
-                for i in range(timeframe)
-            ]
-        )
-    elif building_scenario == "fast":
-        insulation_per_year = [
-            mass_per_house * houses_per_year_fast(total_houses, years)[i]
-            if i < years
-            else 0
-            for i in range(timeframe)
-        ]
-    elif building_scenario == "slow":
-        insulation_per_year = [
-            mass_per_house * houses_per_year_slow(total_houses, years)[i]
-            if i < years
-            else 0.0
-            for i in range(timeframe)
-        ]
-    else:
-        raise ValueError("Choose building scenario normal/fast/slow")
 
+def moduleA(material, timeframe, ipy):
     dataset = pd.DataFrame(
         (
             MATERIAL_DATA[
@@ -180,23 +176,60 @@ def make_dataset(
             ][["CO2", "CH4", "N2O", "CO"]]
             .reset_index(drop=True)
             .loc[[0 for i in range(timeframe)]]
-            .multiply(insulation_per_year, axis=0)
+            .multiply(ipy, axis=0)
         )
     )
     dataset["CO2bio"] = CO2bio(
-        material,
-        insulation_per_year,
-        MATERIALS[material]["lifetime"],
-        timeframe,
+        material, ipy, MATERIALS[material]["lifetime"], timeframe
     )
 
-    # TBD how EoL works
-    # dataset["BiogenicPulse"] = np.append(
-    #     np.zeros(MATERIALS[material]["lifetime"]),
-    #     [i * MATERIALS[material]["CO2bio"] for i in insulation_per_year],
-    # )[:timeframe]
+    return dataset
 
-    return dataset  # .iloc[:timeframe].reset_index(drop=True)
+
+def moduleB(material, timeframe, ipy, dataset):
+    return dataset
+
+
+def moduleCD(material, timeframe, ipy, waste_scenario):
+    waste_emissions = WASTE_DATA[
+        WASTE_DATA["Name"] == MATERIALS[material]["waste"][waste_scenario]
+    ][["CO2", "CH4", "N2O", "CO"]].iloc[0]
+    dataset = pd.DataFrame(
+        np.zeros((BUILDING_LIFETIME, 4)), columns=["CO2", "CH4", "N2O", "CO"]
+    )
+    for i in range(len(ipy)):
+        dataset.loc[BUILDING_LIFETIME + i] = waste_emissions * ipy[i]
+
+    return dataset[:timeframe]
+
+
+def insulation_per_year(
+    building_scenario, mass_per_house, total_houses, years, timeframe
+):
+    if building_scenario == "normal":
+        ipy = np.array(
+            [
+                mass_per_house * total_houses / years if i < years else 0.0
+                for i in range(timeframe)
+            ]
+        )
+    elif building_scenario == "fast":
+        ipy = [
+            mass_per_house * houses_per_year_fast(total_houses, years)[i]
+            if i < years
+            else 0
+            for i in range(timeframe)
+        ]
+    elif building_scenario == "slow":
+        ipy = [
+            mass_per_house * houses_per_year_slow(total_houses, years)[i]
+            if i < years
+            else 0.0
+            for i in range(timeframe)
+        ]
+    else:
+        raise ValueError("Choose building scenario normal/fast/slow")
+    return ipy
 
 
 def houses_per_year_fast(houses, years):
@@ -218,11 +251,9 @@ def insulation_per_house(material):
     return volume * MATERIALS[material]["density"]
 
 
-def CO2bio(material, insulation_per_year, lifetime, timeframe):
-    CO2bio_per_year = np.zeros(
-        len(insulation_per_year) + MATERIALS[material]["rotation"]
-    )
-    for i, kg in enumerate(insulation_per_year):
+def CO2bio(material, ipy, lifetime, timeframe):
+    CO2bio_per_year = np.zeros(len(ipy) + MATERIALS[material]["rotation"])
+    for i, kg in enumerate(ipy):
         for j in range(MATERIALS[material]["rotation"]):
             CO2bio_per_year[i + j] += (
                 kg

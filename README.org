@@ -99,6 +99,14 @@ Notes
   recovery / biogas production)
 - Start with some simple
 
+Previous implementation
+  #+begin_src python
+# TBD how EoL works
+# dataset["BiogenicPulse"] = np.append(
+#     np.zeros(MATERIALS[material]["lifetime"]),
+#     [i * MATERIALS[material]["CO2bio"] for i in insulation_per_year],
+# )[:timeframe]
+#+end_src
 
 Relevant EcoInvent data
   #+begin_src python
@@ -300,6 +308,7 @@ dataset["kg CO2"] = (
 ** TODO
 
 - Look into rounding off of numbers when reading in dataset
+  - happens in .astype(float)
 - Fix placeholder values for rotation time
   - model N(r/2, r/4) ?
   - check if loop i in range(rotation) works for species with r=0.5
