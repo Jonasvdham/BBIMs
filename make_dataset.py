@@ -154,7 +154,7 @@ def make_dataset(
     #     [i * MATERIALS[material]["CO2bio"] for i in insulation_per_year],
     # )[:timeframe]
 
-    return dataset.iloc[:timeframe].reset_index(drop=True)
+    return dataset  # .iloc[:timeframe].reset_index(drop=True)
 
 
 def houses_per_year_fast(houses, years):

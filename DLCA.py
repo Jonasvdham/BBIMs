@@ -2,7 +2,7 @@ import numpy as np
 from scipy.integrate import quad
 import pandas as pd
 import matplotlib.pyplot as plt
-from make_dataset import make_dataset
+from make_dataset import make_datasets
 
 """
 aCH4 - instant. radiative forcing per unit mass [10^-12 W/m2 /kgCH4]
@@ -24,20 +24,22 @@ EMISSIONFACTOR = 1
 
 
 def DLCA(
-    material,
+    materials,
     building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,
-    time_frame=200,
+    timeframe=200,
 ):
-    dataset = make_dataset(
-        material, building_scenario, total_houses, time_horizon
+    dataset = make_datasets(
+        materials, building_scenario, total_houses, time_horizon
     )
-    DCF_CO2_ti, DCF_CH4_ti = DCF(time_frame)
-    GWI_inst = GWI(dataset, time_frame, DCF_CO2_ti, DCF_CH4_ti)
-    GWI_inst_tot = GWI_inst.sum(axis=1)
-    GWI_cum = GWI_inst_tot.cumsum()
-    return GWI_inst_tot, GWI_cum
+    GWIs = {}
+    for material in materials:
+        GWI_inst = GWI(dataset[material], timeframe)
+        GWI_inst_tot = GWI_inst.sum(axis=1)
+        GWI_cum = GWI_inst_tot.cumsum()
+        GWIs[material] = (GWI_inst_tot, GWI_cum)
+    return GWIs
 
 
 def DCF(tf):
@@ -58,7 +60,8 @@ def DCF(tf):
     return DCF_CO2_ti, DCF_CH4_ti
 
 
-def GWI(dataset, timeframe, DCF_CO2_ti, DCF_CH4_ti):
+def GWI(dataset, timeframe):
+    DCF_CO2_ti, DCF_CH4_ti = DCF(timeframe)
     GWI_inst = pd.DataFrame(columns=["CO2", "CH4"], index=range(timeframe))
     for t in range(timeframe):
         GWI_inst["CO2"][t] = np.sum(
@@ -92,22 +95,19 @@ def plot_GWI(
     building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,
-    time_frame=200,
+    timeframe=200,
     plottype="cum",
 ):
-    GWI_dict = {}
-    for material in materials:
-        inst, cum = DLCA(
-            material, building_scenario, total_houses, time_horizon, time_frame
-        )
-        GWI_dict[material] = {"inst": inst, "cum": cum}
-    x = np.arange(time_frame) + 2023
+    GWIs = DLCA(
+        materials, building_scenario, total_houses, time_horizon, timeframe
+    )
+    x = np.arange(timeframe) + 2023
     if plottype == "inst":
         for material in materials:
-            plt.plot(x, GWI_dict[material]["inst"], label=material)
+            plt.plot(x, GWIs[material][0], label=material)
     elif plottype == "cum":
         for material in materials:
-            plt.plot(x, GWI_dict[material]["cum"], label=material)
+            plt.plot(x, GWIs[material][1], label=material)
     else:
         return "invalid type"
     plt.xlabel("Years")
