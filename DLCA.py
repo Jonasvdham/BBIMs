@@ -63,13 +63,14 @@ def GWI(dataset, timeframe, DCF_CO2_ti, DCF_CH4_ti):
     for t in range(timeframe):
         GWI_inst["CO2"][t] = np.sum(
             (
-                dataset["kg CO2"][t]
+                dataset["CO2"][t]
                 + dataset["CO2bio"][t]
-                + EMISSIONFACTOR * dataset["BiogenicPulse"][t]
+                # TBD how EoL works
+                # EMISSIONFACTOR * dataset["BiogenicPulse"][t]
             )
             * DCF_CO2_ti[:, t]
         )
-        GWI_inst["CH4"][t] = np.sum(dataset["kg CH4"][t] * DCF_CH4_ti[:, t])
+        GWI_inst["CH4"][t] = np.sum(dataset["CH4"][t] * DCF_CH4_ti[:, t])
     return GWI_inst
 
 
@@ -118,5 +119,5 @@ def plot_GWI(
     plt.show()
 
 
-# plot_GWI(['cork', 'stone wool', 'glass wool'], 'fast', 150000, 2050, 27, 'inst')
-# plot_GWI(['straw','cork', 'stone wool', 'glass wool'], 'fast', 150000, 2050, 200, 'inst')
+# plot_GWI(['straw','XPS', 'stone wool', 'glass wool'], 'fast', 150000, 2050, 200, 'inst')
+# plot_GWI(['straw','XPS', 'stone wool', 'glass wool'], 'fast', 10, 2033, 100, 'cum')

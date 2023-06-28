@@ -12,6 +12,7 @@ houses_per_year_fast(150000, 27)
 #+end_src
 
 Large differences between cork / cellulose / stone wool
+Francesco: cork is an 'anomaly' in the EcoInvent dataset, high production energy.
 #+begin_src python
 dataset = make_datasets()
 dataset['cork']
@@ -56,7 +57,9 @@ sum(df['kg CO2-eq']<df['kg CO2'])
 - Check all GHGs are properly taken into account (e.g. CO turns into CO2)
 - Gather crop rotation periods
 - Include specific radiative forcing per unit mass (Hoxha e.a. 2020):
-  For the CO2, CH4 and N2O the values are respectively: ACO2 = 1.76 × 10–15 Wm–2 kg–1; ACH4 = 1.28 × 10–13 Wm–2 kg–1; AN2O = 3.90 × 10–13 Wm–2 kg–1.
+  For the CO2, CH4 and N2O the values are respectively: ACO2 = 1.76 × 10–15
+  Wm–2 kg–1; ACH4 = 1.28 × 10–13 Wm–2 kg–1; AN2O = 3.90 × 10–13 Wm–2 kg–1.
+- check if atmospheric decay functions are correctly being applied.
 
 * Make Dataset
 
@@ -64,16 +67,59 @@ sum(df['kg CO2-eq']<df['kg CO2'])
 
 Notes
 - CO2_bio:
-  - Currently not counting biogenic CO2 in cellulose as it is recycled
   - Missing hemp
-- Add KG of insulation per house depending on material
-  - currently using placeholder value of 1000kg per unit
 - Check if dataset is correctly read in with dots/commas
 - check lifecycle stages which are included now
   - a1-a3 from Ecoinvent.tsv
   - C from carbon content (KBOB)
     - how does this work for non-biobased?
   - D: can make some assumptions
+
+** data
+
+- Ecoinvent straw:
+  "Straw {CH}| wheat production, Swiss integrated production, extensive |
+  Cut-off, S"
+  extensive vs intensive?
+
+
+
+** B/C/D
+
+*** End-of-life
+
+- Need to add EoL data from ecoinvent_waste.csv (module C)
+- Optional module D benefits from ecoinvent_energy.csv (assuming energy
+  recovery / biogas production)
+- Start with some simple
+
+*** Module B
+
+- Need to model module B - replacement after functional lifetime.
+  - In a dynamic model, module B should also be dynamic. I.e. start a whole new
+    product lifecycle.
+  - Can only be done after adding modules C & D
+
+- I can use copies of the original dataset for this:
+
+  - The variables seem to remain the same [material, #houses, time_horizon,
+    timeframe]? Time might change.
+  - Make n copies of the original dataset which EXCLUDES module B
+
+
+#+begin_src python
+n = ceil(building lifetime / product lifetime) - 1
+for i in range(n):
+    # copy dataset
+    # prepend np.zeros((i+1) * product_lifetime)
+    # add to original dataset
+#+end_src
+
+- e.g. ceil(75 / 50) - 1 = 2  - 1 = 1 -> for replacement during lifetime
+- Edge case if building_lt % product_lt == 0
+- e.g. ceil(100 / 25) - 1 = 4 - 1 = 3 ->  3 'replacements'
+- the copies of the dataset will have i*product_lifetime zeros prepended
+
 
 **  CO2 issues
 
@@ -110,8 +156,9 @@ dataset["kg CO2"] = (
 
 ** TODO
 
-- Add KG of insulation per house depending on material
-- Fix placeholder values for rotation time - (model N(r/2, r/4) ?)
+- Look into rounding off of numbers when reading in dataset
+- Fix placeholder values for rotation time
+  - model N(r/2, r/4) ?
   - check if loop i in range(rotation) works for species with r=0.5
 - Remove placeholder values
   - M2 Facades, Rvalue, lambda values

@@ -6,16 +6,16 @@ CURRENT_YEAR = 2023
 M2FACADE = 4  # placeholder
 RVALUE = 3.5  # placeholder
 MATERIALS = {
-    "cellulose": {
-        "name": "Cellulose fibre, inclusive blowing in {GLO}| market for | Cut-off, S",
+    "cellulose": {  # Ecoinvent
+        "name": "Cellulose fibre, inclusive blowing in {CH}| production | Cut-off, S",
         "lambda": 0.038,
         "density": 52,
         "CO2bio": -0,
         "rotation": 1,
         "lifetime": 50,
     },
-    "cork": {
-        "name": "Cork slab {GLO}| market for | Cut-off, S",
+    "cork": {  # Ecoinvent
+        "name": "Cork slab {RER}| production | Cut-off, S",
         "lambda": 0.04,  # placeholder
         "density": 100,  # placeholder
         "CO2bio": -0.496,
@@ -38,32 +38,32 @@ MATERIALS = {
         "rotation": 1,
         "lifetime": 50,
     },
-    "straw": {
-        "name": "Straw {CH}| wheat production, Swiss integrated production, intensive | Cut-off, S",
+    "straw": {  # Ecoinvent
+        "name": "Straw {CH}| wheat production, Swiss integrated production, extensive | Cut-off, S",
         "lambda": 0.44,
         "density": 100,
         "CO2bio": -0.368,
         "rotation": 1,
         "lifetime": 50,
     },
-    "glass wool": {
-        "name": "Glass wool mat {GLO}| market for | Cut-off, S",
+    "glass wool": {  # Ecoinvent
+        "name": "Glass wool mat {CH}| production | Cut-off, S",
         "lambda": 0.036,
         "density": 22,
         "CO2bio": -0,
         "rotation": 1,
         "lifetime": 50,
     },
-    "stone wool": {
-        "name": "Stone wool {GLO}| market for stone wool | Cut-off, S",
+    "stone wool": {  # Ecoinvent
+        "name": "Stone wool {CH}| stone wool production | Cut-off, S",
         "lambda": 0.036,
         "density": 29.5,
         "CO2bio": -0,
         "rotation": 1,
         "lifetime": 50,
     },
-    "XPS": {
-        "name": "Polystyrene, extruded {GLO}| market for | Cut-off, S",
+    "XPS": {  # Ecoinvent
+        "name": "Polystyrene, extruded {RER}| polystyrene production, extruded, CO2 blown | Cut-off, S",
         "lambda": 0.033,
         "density": 40,  # placeholder
         "CO2bio": -0,
@@ -72,8 +72,8 @@ MATERIALS = {
     },
 }
 
-DF = pd.read_csv("data/ecoinvent_material.csv", sep=";")
-DF[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = DF[
+RAW_DATA = pd.read_csv("data/ecoinvent_material.csv", sep=";")
+RAW_DATA[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = RAW_DATA[
     ["CO2-eq", "CO2", "CH4", "N2O", "CO"]
 ].apply(lambda x: x.str.replace(",", ".").astype(float))
 
@@ -133,8 +133,8 @@ def make_dataset(
 
     dataset = pd.DataFrame(
         (
-            insulation[insulation["Name"] == MATERIALS[material]["name"]][
-                ["kg CO2", "kg CH4", "kg N2O", "kg CO"]
+            RAW_DATA[RAW_DATA["Name"] == MATERIALS[material]["name"]][
+                ["CO2", "CH4", "N2O", "CO"]
             ]
             .reset_index(drop=True)
             .loc[[0 for i in range(timeframe)]]
@@ -147,10 +147,12 @@ def make_dataset(
         MATERIALS[material]["lifetime"],
         timeframe,
     )
-    dataset["BiogenicPulse"] = np.append(
-        np.zeros(MATERIALS[material]["lifetime"]),
-        [i * MATERIALS[material]["CO2bio"] for i in insulation_per_year],
-    )[:timeframe]
+
+    # TBD how EoL works
+    # dataset["BiogenicPulse"] = np.append(
+    #     np.zeros(MATERIALS[material]["lifetime"]),
+    #     [i * MATERIALS[material]["CO2bio"] for i in insulation_per_year],
+    # )[:timeframe]
 
     return dataset.iloc[:timeframe].reset_index(drop=True)
 
