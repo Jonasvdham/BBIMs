@@ -3,12 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 CURRENT_YEAR = 2023
-INSULATION_PER_HOUSE_KG = 1000
 M2FACADE = 4  # placeholder
-RVALUE = 4.5  # placeholder
+RVALUE = 3.5  # placeholder
 MATERIALS = {
     "cellulose": {
-        "name": "Cellulose fibre. inclusive blowing in {GLO}| market for | Cut-off. S",
+        "name": "Cellulose fibre, inclusive blowing in {GLO}| market for | Cut-off, S",
         "lambda": 0.038,
         "density": 52,
         "CO2bio": -0,
@@ -16,7 +15,7 @@ MATERIALS = {
         "lifetime": 50,
     },
     "cork": {
-        "name": "Cork slab {GLO}| market for | Cut-off. S",
+        "name": "Cork slab {GLO}| market for | Cut-off, S",
         "lambda": 0.04,  # placeholder
         "density": 100,  # placeholder
         "CO2bio": -0.496,
@@ -40,7 +39,7 @@ MATERIALS = {
         "lifetime": 50,
     },
     "straw": {
-        "name": "Straw {CH}| wheat production. Swiss integrated production. intensive | Cut-off. S",
+        "name": "Straw {CH}| wheat production, Swiss integrated production, intensive | Cut-off, S",
         "lambda": 0.44,
         "density": 100,
         "CO2bio": -0.368,
@@ -48,7 +47,7 @@ MATERIALS = {
         "lifetime": 50,
     },
     "glass wool": {
-        "name": "Glass wool mat {GLO}| market for | Cut-off. S",
+        "name": "Glass wool mat {GLO}| market for | Cut-off, S",
         "lambda": 0.036,
         "density": 22,
         "CO2bio": -0,
@@ -56,7 +55,7 @@ MATERIALS = {
         "lifetime": 50,
     },
     "stone wool": {
-        "name": "Stone wool {GLO}| market for stone wool | Cut-off. S",
+        "name": "Stone wool {GLO}| market for stone wool | Cut-off, S",
         "lambda": 0.036,
         "density": 29.5,
         "CO2bio": -0,
@@ -64,7 +63,7 @@ MATERIALS = {
         "lifetime": 50,
     },
     "XPS": {
-        "name": "Polystyrene. extruded {GLO}| market for | Cut-off. S",
+        "name": "Polystyrene, extruded {GLO}| market for | Cut-off, S",
         "lambda": 0.033,
         "density": 40,  # placeholder
         "CO2bio": -0,
@@ -73,42 +72,14 @@ MATERIALS = {
     },
 }
 
-insulation = pd.read_csv(
-    "data/Ecoinvent.tsv",
-    sep="\t",
-    skiprows=(lambda x: x > 0 and (x < 3086 or x > 3143)),
-)
-insulation = insulation[insulation["type"] == "Market"]
-
-insulation = insulation.append(
-    pd.DataFrame(
-        {
-            "Category": "Material",
-            "Family": "Agricultural",
-            "Process": "Plant production",
-            "Sub-process": "Cereals",
-            "type": "Transformation",
-            "Name": "Straw {CH}| wheat production. Swiss integrated production. intensive | Cut-off. S",
-            "FU": "kg",
-            "kg CO2": 0.020474577,
-            "kg CH4": 4.51975e-05,
-            "kg N2O": 7.79062e-05,
-            "kg CO": 0.000100325,
-        },
-        index=[len(insulation)],
-    )
-)
+DF = pd.read_csv("data/ecoinvent_material.csv", sep=";")
+DF[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = DF[
+    ["CO2-eq", "CO2", "CH4", "N2O", "CO"]
+].apply(lambda x: x.str.replace(",", ".").astype(float))
 
 
 def make_datasets(
-    materials=[
-        "straw",
-        "cellulose",
-        "cork",
-        "glass wool",
-        "stone wool",
-        "XPS",
-    ],
+    materials=["straw", "cellulose", "glass wool", "stone wool", "XPS"],
     building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,
@@ -134,7 +105,7 @@ def make_dataset(
         raise ValueError("Material not supported")
 
     years = time_horizon - CURRENT_YEAR
-    mass_per_house = insul_per_house(material)
+    mass_per_house = insulation_per_house(material)
 
     if building_scenario == "normal":
         insulation_per_year = np.array(
@@ -198,7 +169,7 @@ def houses_per_year_slow(houses, years):
     )
 
 
-def insul_per_house(material):
+def insulation_per_house(material):
     volume = M2FACADE * RVALUE * MATERIALS[material]["lambda"]
     return volume * MATERIALS[material]["density"]
 
