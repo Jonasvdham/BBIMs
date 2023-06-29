@@ -165,7 +165,7 @@ def make_dataset(
     dataset = moduleA(material, timeframe, ipy)
     dataset += moduleCD(material, timeframe, ipy, waste_scenario)
     # dataset = moduleB(material, timeframe, ipy, dataset)
-    return dataset.iloc[:timeframe].reset_index(drop=True)
+    return dataset
 
 
 def moduleA(material, timeframe, ipy):
@@ -179,11 +179,11 @@ def moduleA(material, timeframe, ipy):
             .multiply(ipy, axis=0)
         )
     )
-    dataset["CO2bio"] = CO2bio(
+    dataset["CO2"] += CO2bio(
         material, ipy, MATERIALS[material]["lifetime"], timeframe
     )
 
-    return dataset
+    return dataset.reset_index(drop=True)
 
 
 def moduleB(material, timeframe, ipy, dataset):
