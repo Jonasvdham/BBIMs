@@ -52,9 +52,6 @@ sum(df['kg CO2-eq']<df['kg CO2'])
 
 - Write to output file
 - Generate better plots (radiative forcing, GWP)
-- Decide how to handle tf of interest and time_horizon for construction (i.e.
-  consider the impact until 2100 of houses constructed until 2050)
-- Check all GHGs are properly taken into account (e.g. CO turns into CO2)
 - Gather crop rotation periods
 - Include specific radiative forcing per unit mass (Hoxha e.a. 2020):
   - For the CO2, CH4 and N2O the values are respectively:
@@ -97,16 +94,6 @@ Notes
 - Need to add EoL data from ecoinvent_waste.csv (module C)
 - Optional module D benefits from ecoinvent_energy.csv (assuming energy
   recovery / biogas production)
-- Start with some simple
-
-Previous implementation
-  #+begin_src python
-# TBD how EoL works
-# dataset["BiogenicPulse"] = np.append(
-#     np.zeros(MATERIALS[material]["lifetime"]),
-#     [i * MATERIALS[material]["CO2bio"] for i in insulation_per_year],
-# )[:timeframe]
-#+end_src
 
 Relevant EcoInvent data
   #+begin_src python

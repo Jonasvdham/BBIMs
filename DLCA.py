@@ -74,12 +74,9 @@ def GWI(dataset, timeframe):
         np.zeros((timeframe, 3)), columns=["CO2", "CH4", "N2O"]
     )
     for t in range(timeframe):
-        GWI_inst["CO2"] += (
-            dataset["CO2"][t]
-            + dataset["CO"][t]
-            + dataset["CO2bio"][t]
-            # TBD how EoL works: EMISSIONFACTOR * dataset["BiogenicPulse"][t]
-        ) * DCF_CO2_ti[t]
+        GWI_inst["CO2"] += (dataset["CO2"][t] + dataset["CO"][t]) * DCF_CO2_ti[
+            t
+        ]
         GWI_inst["CH4"] += dataset["CH4"][t] * DCF_CH4_ti[t]
         GWI_inst["N2O"] += dataset["N2O"][t] * DCF_N2O_ti[t]
     return GWI_inst
@@ -109,6 +106,7 @@ def plot_GWI(
     time_horizon=2050,
     timeframe=200,
     plottype="cum",
+    outfile=None,
 ):
     GWIs = DLCA(
         materials, building_scenario, total_houses, time_horizon, timeframe
@@ -123,13 +121,35 @@ def plot_GWI(
     else:
         return "invalid type"
     plt.xlabel("Years")
-    plt.ylabel("GWI" + plottype)
+    plt.ylabel("Radiative forcing " + plottype)
     plt.legend()
-    plt.title("Global warming Impact (" + plottype + ")")
+    plt.title(f"Global warming Impact ({plottype}, {building_scenario})")
     plt.grid(True)
 
-    plt.show()
+    if outfile:
+        plt.savefig(
+            f"plots/{total_houses}housesby{time_horizon}_{plottype}_{building_scenario}.svg"
+        )
+
+    else:
+        plt.show()
+
+    plt.close()
 
 
-# plot_GWI(['straw','XPS', 'stone wool', 'glass wool'], 'fast', 150000, 2050, 200, 'inst')
-# plot_GWI(['straw','XPS', 'stone wool', 'glass wool'], 'fast', 10, 2033, 100, 'cum')
+def generate_plots():
+    for scenario in [
+        (1, 2024, ["normal"]),
+        (150000, 2050, ["slow", "normal", "fast"]),
+    ]:
+        for plottype in ["cum", "inst"]:
+            for building_scenario in scenario[2]:
+                plot_GWI(
+                    ["straw", "XPS", "stone wool", "glass wool"],
+                    building_scenario,
+                    scenario[0],
+                    scenario[1],
+                    200,
+                    plottype,
+                    True,
+                )
