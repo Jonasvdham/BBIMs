@@ -238,6 +238,23 @@ MATERIALS = {
     product lifecycle.
   - Can only be done after adding modules C & D
 
+
+**** new idea
+I can use copies of the dataset but only when I first have a dataset which for
+each house models:
+- construction
+- waste spike after product lifetime
+for each replacement.
+
+Then at the end-of-life for the building add 1 more waste spike.
+
+Example showing Edge case if building_lt % product_lt == 0:
+- e.g. ceil(75 / 50) - 1 = 2  - 1 = 1 -> 1 replacement
+- e.g. ceil(100 / 25) - 1 = 4 - 1 = 3 ->  3 replacements
+- A replacement includes both module A and module C/D costs
+- After building lifetime add EoL cost (only module C/D)
+
+**** old idea
 - I can use copies of the original dataset for this:
 
   - The variables seem to remain the same [material, #houses, time_horizon,
