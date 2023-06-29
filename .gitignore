@@ -6,6 +6,7 @@ __pycache__/
 # data / archive
 data/
 archive/
+plots/
 
 # C extensions
 *.so
