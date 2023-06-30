@@ -3,50 +3,17 @@
 Thesis research project into the carbon-removal potential of bio-based
 insulation materials (BBIMs)
 
-* Demo
-
-housing scenarios
-#+begin_src python
-houses_per_year_slow(150000, 27)
-houses_per_year_fast(150000, 27)
-#+end_src
-
-Large differences between cork / cellulose / stone wool
-Francesco: cork is an 'anomaly' in the EcoInvent dataset, high production energy.
-#+begin_src python
-dataset = make_datasets()
-dataset['cork']
-dataset['stone wool']
-dataset['cellulose']
-#+end_src
-
-Plotting them:
-#+begin_src python
-plot_GWI(['cork', 'cellulose', 'stone wool'], building_scenario='normal', plottype='inst')
-plot_GWI(['cork', 'cellulose', 'stone wool'], building_scenario='normal', plottype='cum')
-#+end_src
-
 * DLCA
 
 [[file:DLCA.py]]
 
 Notes
 - make_dataset assumes positive CO2bio, DLCA assumes negative
-- Where did I get the alpha values? They are different from Hoxha e.a. 2020
 
 ** Missing data
 
 - EcoInvent: Flax, Hemp, Straw, EPS
 - Biogenic CO2: Hemp
-
-** Anomalies
-
-#+begin_src python
-df = pd.read_csv("data/Ecoinvent.tsv", sep="\t")
-sum(df['kg CO2-eq']<df['kg CO2'])
-#+end_src
-
-890 / 5421 rows have higher CO2 than CO2-eq
 
 ** TODO
 
@@ -61,8 +28,7 @@ sum(df['kg CO2-eq']<df['kg CO2'])
   - the ones from the original matlab file are
     - aCO2 = 0.0018088
     - aCH4 = 0.129957
-- check if atmospheric decay functions are correctly being applied.
-- check if N20 and CO are accounted for
+- check atmospheric decay and influence of all GHGs
 
 * Make Dataset
 
@@ -71,7 +37,6 @@ sum(df['kg CO2-eq']<df['kg CO2'])
 Notes
 - CO2_bio:
   - Missing hemp
-- Check if dataset is correctly read in with dots/commas
 - check lifecycle stages which are included now
   - a1-a3 from Ecoinvent.tsv
   - C from carbon content (KBOB)
@@ -318,3 +283,26 @@ dataset["kg CO2"] = (
   - check if loop i in range(rotation) works for species with r=0.5
 - Remove placeholder values
   - M2 Facades, Rvalue, lambda values
+
+* Demo
+
+housing scenarios
+#+begin_src python
+houses_per_year_slow(150000, 27)
+houses_per_year_fast(150000, 27)
+#+end_src
+
+Large differences between cork / cellulose / stone wool
+Francesco: cork is an 'anomaly' in the EcoInvent dataset, high production energy.
+#+begin_src python
+dataset = make_datasets()
+dataset['cork']
+dataset['stone wool']
+dataset['cellulose']
+#+end_src
+
+Plotting them:
+#+begin_src python
+plot_GWI(['cork', 'cellulose', 'stone wool'], building_scenario='normal', plottype='inst')
+plot_GWI(['cork', 'cellulose', 'stone wool'], building_scenario='normal', plottype='cum')
+#+end_src

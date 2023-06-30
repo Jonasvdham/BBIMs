@@ -137,7 +137,7 @@ def plot_GWI(
     plt.close()
 
 
-def generate_plots():
+def generate_plots(outfile=False):
     for scenario in [
         (1, 2024, ["normal"]),
         (150000, 2050, ["slow", "normal", "fast"]),
@@ -151,5 +151,5 @@ def generate_plots():
                     scenario[1],
                     200,
                     plottype,
-                    True,
+                    outfile,
                 )

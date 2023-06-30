@@ -2,11 +2,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# change back: buildinglifetime, straw: lifetime, rotation
 CURRENT_YEAR = 2023
 M2FACADE = 4  # placeholder
 RVALUE = 3.5  # placeholder
-BUILDING_LIFETIME = 12
+BUILDING_LIFETIME = 75
 MATERIALS = {
     "cellulose": {  # Ecoinvent
         "name": "Cellulose fibre, inclusive blowing in {CH}| production | Cut-off, S",
@@ -65,8 +64,8 @@ MATERIALS = {
         "lambda": 0.44,
         "density": 100,
         "CO2bio": -0.368,
-        "rotation": 3,
-        "lifetime": 5,
+        "rotation": 1,
+        "lifetime": 50,
         "waste": [
             "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
             "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
@@ -178,12 +177,18 @@ def make_dataset(
         WASTE_DATA["Name"] == MATERIALS[material]["waste"][waste_scenario]
     ][["CO2", "CH4", "N2O", "CO"]].iloc[0]
 
-    dataset = construction(material, timeframe, ipy, no_replacements)
-    dataset2 = replacement(
+    construction_emissions = construction(
+        material, timeframe, ipy, no_replacements
+    )
+    replacement_emissions = replacement(
         material, timeframe, ipy, no_replacements, waste_emissions
     )
-    # dataset3 = demolition(material, timeframe, dataset2)
-    return dataset + dataset2
+    demolition_emissions = demolition(
+        material, timeframe, ipy, waste_emissions
+    )
+    return (
+        construction_emissions + replacement_emissions + demolition_emissions
+    )
 
 
 def construction(material, timeframe, ipy, no_replacements):
@@ -230,15 +235,13 @@ def replacement(material, timeframe, ipy, no_replacements, waste_emissions):
     return dataset[:timeframe]
 
 
-def demolition(material, timeframe, dataset):
-
-    timeshift = pd.DataFrame(
-        np.zeros((MATERIALS[material]["lifetime"], 4)),
-        columns=["CO2", "CH4", "N2O", "CO"],
+def demolition(material, timeframe, ipy, waste_emissions):
+    dataset = pd.DataFrame(
+        np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
     )
-    dfB = pd.concat([timeshift, dataset], ignore_index=True)
-    dataset += dfB
-    return dataset
+    for i in range(timeframe):
+        dataset.loc[i + BUILDING_LIFETIME] = waste_emissions * ipy[i]
+    return dataset[:timeframe]
 
 
 def insulation_per_year(
