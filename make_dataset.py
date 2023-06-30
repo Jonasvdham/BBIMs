@@ -98,6 +98,19 @@ MATERIALS = {
             "Waste mineral wool, for final disposal {Europe without Switzerland}| treatment of waste mineral wool, inert material landfill | Cut - off, S",
         ],
     },
+    "EPS": {  # Ecoinvent
+        "name": "Polystyrene foam slab {CH}| production, 45% recycled | Cut-off, S",
+        "lambda": 0.035,
+        "density": 30,
+        "CO2bio": -0,
+        "rotation": 1,
+        "lifetime": 50,
+        "waste": [
+            "Waste polystyrene {Europe without Switzerland}| market for waste polystyrene | Cut-off, S",
+            "Waste expanded polystyrene {CH}| treatment of, municipal incineration | Cut-off, S",
+            "Waste polystyrene {Europe without Switzerland}| treatment of waste polystyrene, sanitary landfill | Cut-off, S",
+        ],
+    },
     "XPS": {  # Ecoinvent
         "name": "Polystyrene, extruded {RER}| polystyrene production, extruded, CO2 blown | Cut-off, S",
         "lambda": 0.033,
@@ -130,7 +143,7 @@ ENERGY_DATA[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = ENERGY_DATA[
 
 
 def make_datasets(
-    materials=["straw", "cellulose", "glass wool", "stone wool", "XPS"],
+    materials=["straw", "cellulose", "glass wool", "stone wool", "EPS", "XPS"],
     building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,

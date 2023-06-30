@@ -28,22 +28,40 @@ EMISSIONFACTOR = 1
 
 
 def DLCA(
-    materials,
+    materials=["straw", "EPS", "XPS", "stone wool", "glass wool"],
     building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,
     timeframe=200,
 ):
     dataset = make_datasets(
-        materials, building_scenario, total_houses, time_horizon
+        materials, building_scenario, total_houses, time_horizon, timeframe
     )
     GWIs = {}
     for material in materials:
         GWI_inst = GWI(dataset[material], timeframe)
         GWI_inst_tot = GWI_inst.sum(axis=1)
         GWI_cum = GWI_inst_tot.cumsum()
-        GWIs[material] = (GWI_inst_tot, GWI_cum)
+        GWIs[material] = {
+            "inst": GWI_inst,
+            "inst_tot": GWI_inst_tot,
+            "cum": GWI_cum,
+        }
     return GWIs
+
+
+def GWI(dataset, timeframe):
+    DCF_CO2_ti, DCF_CH4_ti, DCF_N2O_ti = DCF(timeframe)
+    GWI_inst = pd.DataFrame(
+        np.zeros((timeframe, 3)), columns=["CO2", "CH4", "N2O"]
+    )
+    for t in range(timeframe):
+        GWI_inst["CO2"] += (dataset["CO2"][t] + dataset["CO"][t]) * DCF_CO2_ti[
+            t
+        ]
+        GWI_inst["CH4"] += dataset["CH4"][t] * DCF_CH4_ti[t]
+        GWI_inst["N2O"] += dataset["N2O"][t] * DCF_N2O_ti[t]
+    return GWI_inst
 
 
 def DCF(tf):
@@ -68,20 +86,6 @@ def DCF(tf):
     return DCF_CO2_ti, DCF_CH4_ti, DCF_N2O_ti
 
 
-def GWI(dataset, timeframe):
-    DCF_CO2_ti, DCF_CH4_ti, DCF_N2O_ti = DCF(timeframe)
-    GWI_inst = pd.DataFrame(
-        np.zeros((timeframe, 3)), columns=["CO2", "CH4", "N2O"]
-    )
-    for t in range(timeframe):
-        GWI_inst["CO2"] += (dataset["CO2"][t] + dataset["CO"][t]) * DCF_CO2_ti[
-            t
-        ]
-        GWI_inst["CH4"] += dataset["CH4"][t] * DCF_CH4_ti[t]
-        GWI_inst["N2O"] += dataset["N2O"][t] * DCF_N2O_ti[t]
-    return GWI_inst
-
-
 def C_CO2(t):
     return (
         a0Bern
@@ -100,26 +104,20 @@ def C_N2O(t):
 
 
 def plot_GWI(
-    materials,
+    materials=["straw", "EPS", "XPS", "stone wool", "glass wool"],
     building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,
     timeframe=200,
-    plottype="cum",
-    outfile=None,
+    plottype="inst",
+    outfile=False,
 ):
     GWIs = DLCA(
         materials, building_scenario, total_houses, time_horizon, timeframe
     )
     x = np.arange(timeframe) + 2023
-    if plottype == "inst":
-        for material in materials:
-            plt.plot(x, GWIs[material][0], label=material)
-    elif plottype == "cum":
-        for material in materials:
-            plt.plot(x, GWIs[material][1], label=material)
-    else:
-        return "invalid type"
+    for material in materials:
+        plt.plot(x, GWIs[material][plottype], label=material)
     plt.xlabel("Years")
     plt.ylabel("Radiative forcing " + plottype)
     plt.legend()
@@ -145,7 +143,7 @@ def generate_plots(outfile=False):
         for plottype in ["cum", "inst"]:
             for building_scenario in scenario[2]:
                 plot_GWI(
-                    ["straw", "XPS", "stone wool", "glass wool"],
+                    ["straw", "EPS", "XPS", "stone wool", "glass wool"],
                     building_scenario,
                     scenario[0],
                     scenario[1],
