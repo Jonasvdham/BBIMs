@@ -9,7 +9,21 @@ insulation materials (BBIMs)
 
 Notes
 - make_dataset assumes positive CO2bio, DLCA assumes negative
+** Rotation
 
+
+      #+begin_src python
+def CO2bio(material, ipy, lifetime, timeframe):
+    CO2bio_per_year = np.zeros(len(ipy) + MATERIALS[material]["rotation"])
+    for i, kg in enumerate(ipy):
+        for j in range(MATERIALS[material]["rotation"]):
+            CO2bio_per_year[i + j] += (
+                kg
+                * MATERIALS[material]["CO2bio"]
+                / MATERIALS[material]["rotation"]
+            )
+    return CO2bio_per_year[:timeframe]
+#+end_src
 
 ** Issue: Straw GWI_inst negative trail
 

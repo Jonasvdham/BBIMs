@@ -7,6 +7,17 @@ M2FACADE = 4  # placeholder
 RVALUE = 3.5  # placeholder
 BUILDING_LIFETIME = 75
 MATERIALS = {
+    "test": {
+        "name": "test",
+        "lambda": 0.05,
+        "density": 50,
+        "CO2bio": -100,
+        "rotation": 1,
+        "lifetime": 50,
+        "waste": [
+            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S"
+        ],
+    },
     "cellulose": {  # Ecoinvent
         "name": "Cellulose fibre, inclusive blowing in {CH}| production | Cut-off, S",
         "lambda": 0.038,
@@ -288,15 +299,13 @@ def insulation_per_year(
 
 def houses_per_year_fast(houses, years):
     return np.diff(
-        [(houses / (years ** 0.5)) * (x + 1) ** 0.5 for x in range(years)],
-        prepend=0,
+        [(houses / (years ** 0.5)) * (x) ** 0.5 for x in range(years + 1)]
     )
 
 
 def houses_per_year_slow(houses, years):
     return np.diff(
-        [(houses / (years ** 2)) * (x + 1) ** 2 for x in range(years)],
-        prepend=0,
+        [(houses / (years ** 2)) * (x) ** 2 for x in range(years + 1)]
     )
 
 
@@ -306,30 +315,34 @@ def insulation_per_house(material):
 
 
 def CO2bio(material, ipy, lifetime, timeframe):
-    CO2bio_per_year = np.zeros(len(ipy) + MATERIALS[material]["rotation"])
-    for i, kg in enumerate(ipy):
-        for j in range(MATERIALS[material]["rotation"]):
-            CO2bio_per_year[i + j] += (
-                kg
-                * MATERIALS[material]["CO2bio"]
-                / MATERIALS[material]["rotation"]
-            )
-    return CO2bio_per_year[:timeframe]
+    CO2bio_per_year = np.zeros(len(ipy))
+    for i in range(len(ipy)):
+        CO2bio_per_year[i] += ipy[i] * MATERIALS[material]["CO2bio"]
+    return CO2bio_per_year
 
 
-def plot(
-    material="cellulose",
-    GHG="CO2",
-    houses=150000,
-    time_horizon=2050,
-    scenario="normal",
-):
-    plt.plot(
-        np.arange(time_horizon - 2023) + 2023,
-        make_dataset(material, scenario, houses, time_horizon)["kg " + GHG],
-    )
-    plt.xlabel("Years")
-    plt.ylabel("kg " + GHG)
-    plt.title("Emissions per Year")
+def hpy(houses=150000, years=27, plottype="inst", outfile=False):
+    if plottype == "inst":
+        slow = houses_per_year_slow(houses, years)
+        fast = houses_per_year_fast(houses, years)
+        normal = [houses / years for i in range(years)]
+        title = "Number of houses constructed per year"
+        x = np.arange(years) + 2023
+    else:
+        slow = [(houses / (years ** 2)) * x ** 2 for x in range(years + 1)]
+        fast = [(houses / (years ** 0.5)) * x ** 0.5 for x in range(years + 1)]
+        normal = [i * houses / years for i in range(years + 1)]
+        title = "Total number of houses constructed"
+        x = np.arange(years + 1) + 2023
+    plt.plot(x, slow, label="slow")
+    plt.plot(x, fast, label="fast")
+    plt.plot(x, normal, label="normal")
+    plt.legend()
+    plt.title(title)
     plt.grid(True)
-    plt.show()
+
+    if outfile:
+        plt.savefig(f"plots/houses_per_year.svg")
+    else:
+        plt.show()
+    plt.close()
