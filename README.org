@@ -27,6 +27,40 @@ def CO2bio(material, ipy, lifetime, timeframe):
 
 ** Issue: Straw GWI_inst negative trail
 
+*** Culprit
+
+The definition of the atmospheric decay function from Hoxha e.a. (2020) is as
+below. For large t, this function goes to a0Bern, which means that for large
+timeframes, the original negative emissions in the straw case still contribute
+20% - which is probably far from the true behaviour.
+
+Need to find a better approximation of the atmospheric CO2 curve somewhere.
+
+#+begin_src python
+def C_CO2(t):
+    return (
+        a0Bern
+        + aBern[0] * np.exp(-t / TauCO2[0])
+        + aBern[1] * np.exp(-t / TauCO2[1])
+        + aBern[2] * np.exp(-t / TauCO2[2])
+    )
+a0Bern = 0.217
+aBern = [0.259, 0.338, 0.186]
+TauCO2 = [172.9, 18.51, 1.186]
+
+def exp3(tf=100):
+    x = np.arange(tf)
+    y1 = [C_CO2(i) for i in range(tf)]
+    y2 = [C_CH4(i) for i in range(tf)]
+    y3 = [C_N2O(i) for i in range(tf)]
+    plt.plot(x, y1, label="CO2")
+    plt.plot(x, y2, label="CH4")
+    plt.plot(x, y3, label="N2O")
+    plt.legend()
+    plt.show()
+    plt.close()
+#+end_src
+
 *** Explanation
 
 From what I have explored so far the model seems correct. My explanation is as
