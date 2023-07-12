@@ -18,6 +18,19 @@ MATERIALS = {
             "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S"
         ],
     },
+    "gypsum": {
+        "name": "Gypsum fibreboard {CH}| production | Cut-off, S",
+        "density": 1150,  # placeholder
+        "CO2bio": -0,
+        "rotation": 1,
+        "lifetime": 50,
+        "waste": [
+            "Waste gypsum {CH}| market for waste gypsum | Cut-off, S",
+            "Waste gypsum plasterboard {CH}| treatment of, collection for final disposal | Cut-off, S",
+            "Waste gypsum plasterboard {CH}| treatment of, recycling | Cut-off, S",
+            "Waste gypsum plasterboard {CH}| treatment of, sorting plant | Cut-off, S",
+        ],
+    },
     "cellulose": {  # Ecoinvent
         "name": "Cellulose fibre, inclusive blowing in {CH}| production | Cut-off, S",
         "lambda": 0.038,
@@ -45,8 +58,8 @@ MATERIALS = {
         ],
     },
     "flax": {
-        "name": "",
-        "lambda": 0.04,  # placeholder
+        "name": "Fibre, flax {RoW}| fibre production, flax, retting | Cut-off, U",
+        "lambda": 0.041,  # placeholder
         "density": 40,
         "CO2bio": -0.44,
         "rotation": 1,
@@ -58,10 +71,10 @@ MATERIALS = {
         ],
     },
     "hemp": {
-        "name": "",
+        "name": "Fibre, hemp {RoW}| fibre production, hemp, retting | Cut-off, U",
         "lambda": 0.041,
         "density": 36,
-        "CO2bio": -0.44,
+        "CO2bio": -0.377,  # from biofib'chanvre EPD
         "rotation": 1,
         "lifetime": 50,
         "waste": [
@@ -186,10 +199,10 @@ def make_dataset(
     if material not in MATERIALS.keys():
         raise ValueError("Material not supported")
 
-    mass_per_house = insulation_per_house(material)
-    ipy = insulation_per_year(
+    mph = mass_per_house(material)
+    mpy = mass_per_year(
         building_scenario,
-        mass_per_house,
+        mph,
         total_houses,
         time_horizon - CURRENT_YEAR,
         timeframe,
@@ -202,20 +215,20 @@ def make_dataset(
     ][["CO2", "CH4", "N2O", "CO"]].iloc[0]
 
     construction_emissions = construction(
-        material, timeframe, ipy, no_replacements
+        material, timeframe, mpy, no_replacements
     )
     replacement_emissions = replacement(
-        material, timeframe, ipy, no_replacements, waste_emissions
+        material, timeframe, mpy, no_replacements, waste_emissions
     )
     demolition_emissions = demolition(
-        material, timeframe, ipy, waste_emissions
+        material, timeframe, mpy, waste_emissions
     )
     return (
         construction_emissions + replacement_emissions + demolition_emissions
     )
 
 
-def construction(material, timeframe, ipy, no_replacements):
+def construction(material, timeframe, mpy, no_replacements):
     dataset = pd.DataFrame(
         (
             MATERIAL_DATA[
@@ -223,11 +236,11 @@ def construction(material, timeframe, ipy, no_replacements):
             ][["CO2", "CH4", "N2O", "CO"]]
             .reset_index(drop=True)
             .loc[[0 for i in range(timeframe)]]
-            .multiply(ipy, axis=0)
+            .multiply(mpy, axis=0)
         )
     )
     dataset["CO2"] += CO2bio(
-        material, ipy, MATERIALS[material]["lifetime"], timeframe
+        material, mpy, MATERIALS[material]["lifetime"], timeframe
     )
 
     tmp = pd.DataFrame(
@@ -246,55 +259,53 @@ def construction(material, timeframe, ipy, no_replacements):
     return dataset.reset_index(drop=True) + tmp
 
 
-def replacement(material, timeframe, ipy, no_replacements, waste_emissions):
+def replacement(material, timeframe, mpy, no_replacements, waste_emissions):
     dataset = pd.DataFrame(
         np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
     )
     for j in range(no_replacements):
         for i in range(timeframe):
             dataset.loc[i + MATERIALS[material]["lifetime"] * (j + 1)] = (
-                waste_emissions * ipy[i]
+                waste_emissions * mpy[i]
             )
 
     return dataset[:timeframe]
 
 
-def demolition(material, timeframe, ipy, waste_emissions):
+def demolition(material, timeframe, mpy, waste_emissions):
     dataset = pd.DataFrame(
         np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
     )
     for i in range(timeframe):
-        dataset.loc[i + BUILDING_LIFETIME] = waste_emissions * ipy[i]
+        dataset.loc[i + BUILDING_LIFETIME] = waste_emissions * mpy[i]
     return dataset[:timeframe]
 
 
-def insulation_per_year(
-    building_scenario, mass_per_house, total_houses, years, timeframe
-):
+def mass_per_year(building_scenario, mph, total_houses, years, timeframe):
     if building_scenario == "normal":
-        ipy = np.array(
+        mpy = np.array(
             [
-                mass_per_house * total_houses / years if i < years else 0.0
+                mph * total_houses / years if i < years else 0.0
                 for i in range(timeframe)
             ]
         )
     elif building_scenario == "fast":
-        ipy = [
-            mass_per_house * houses_per_year_fast(total_houses, years)[i]
+        mpy = [
+            mph * houses_per_year_fast(total_houses, years)[i]
             if i < years
             else 0
             for i in range(timeframe)
         ]
     elif building_scenario == "slow":
-        ipy = [
-            mass_per_house * houses_per_year_slow(total_houses, years)[i]
+        mpy = [
+            mph * houses_per_year_slow(total_houses, years)[i]
             if i < years
             else 0.0
             for i in range(timeframe)
         ]
     else:
         raise ValueError("Choose building scenario normal/fast/slow")
-    return ipy
+    return mpy
 
 
 def houses_per_year_fast(houses, years):
@@ -309,40 +320,20 @@ def houses_per_year_slow(houses, years):
     )
 
 
-def insulation_per_house(material):
-    volume = M2FACADE * RVALUE * MATERIALS[material]["lambda"]
+def mass_per_house(material):
+    if material == "gypsum":
+        # 0.012m = 12mm of fibreboard
+        volume = M2FACADE * 0.012
+    else:
+        volume = M2FACADE * RVALUE * MATERIALS[material]["lambda"]
     return volume * MATERIALS[material]["density"]
 
 
-def CO2bio(material, ipy, lifetime, timeframe):
-    CO2bio_per_year = np.zeros(len(ipy))
-    for i in range(len(ipy)):
-        CO2bio_per_year[i] += ipy[i] * MATERIALS[material]["CO2bio"]
+def CO2bio(material, mpy, lifetime, timeframe):
+    CO2bio_per_year = np.zeros(len(mpy))
+    for i in range(len(mpy)):
+        CO2bio_per_year[i] += mpy[i] * MATERIALS[material]["CO2bio"]
     return CO2bio_per_year
 
 
-def hpy(houses=150000, years=27, plottype="inst", outfile=False):
-    if plottype == "inst":
-        slow = houses_per_year_slow(houses, years)
-        fast = houses_per_year_fast(houses, years)
-        normal = [houses / years for i in range(years)]
-        title = "Number of houses constructed per year"
-        x = np.arange(years) + 2023
-    else:
-        slow = [(houses / (years ** 2)) * x ** 2 for x in range(years + 1)]
-        fast = [(houses / (years ** 0.5)) * x ** 0.5 for x in range(years + 1)]
-        normal = [i * houses / years for i in range(years + 1)]
-        title = "Total number of houses constructed"
-        x = np.arange(years + 1) + 2023
-    plt.plot(x, slow, label="slow")
-    plt.plot(x, fast, label="fast")
-    plt.plot(x, normal, label="normal")
-    plt.legend()
-    plt.title(title)
-    plt.grid(True)
-
-    if outfile:
-        plt.savefig(f"plots/houses_per_year.svg")
-    else:
-        plt.show()
-    plt.close()
+# make_dataset(total_houses=1, time_horizon=2024, timeframe=76)

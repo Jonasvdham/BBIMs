@@ -311,6 +311,55 @@ Notes
     - how does this work for non-biobased?
   - D: can make some assumptions
 
+** adding gypsum
+
+Seems possible using the existing functions, slight modification needed to
+mass_per_house
+
+#+begin_src python
+def mass_per_house(material):
+    if material == "gypsum":
+        # 0.012m = 12mm of fibreboard
+        volume = M2FACADE * 0.012
+    else:
+        volume = M2FACADE * RVALUE * MATERIALS[material]["lambda"]
+    return volume * MATERIALS[material]["density"]
+#+end_src
+
+
+** Plots
+
+# Houses per year
+
+#+begin_src python
+def hpy(houses=150000, years=27, plottype="inst", outfile=False):
+    if plottype == "inst":
+        slow = houses_per_year_slow(houses, years)
+        fast = houses_per_year_fast(houses, years)
+        normal = [houses / years for i in range(years)]
+        title = "Number of houses constructed per year"
+        x = np.arange(years) + 2023
+    else:
+        slow = [(houses / (years ** 2)) * x ** 2 for x in range(years + 1)]
+        fast = [(houses / (years ** 0.5)) * x ** 0.5 for x in range(years + 1)]
+        normal = [i * houses / years for i in range(years + 1)]
+        title = "Total number of houses constructed"
+        x = np.arange(years + 1) + 2023
+    plt.plot(x, slow, label="slow")
+    plt.plot(x, fast, label="fast")
+    plt.plot(x, normal, label="normal")
+    plt.legend()
+    plt.title(title)
+    plt.grid(True)
+
+    if outfile:
+        plt.savefig(f"plots/houses_per_year.svg")
+    else:
+        plt.show()
+    plt.close()
+
+#+end_src
+
 ** data
 
 - Ecoinvent straw:

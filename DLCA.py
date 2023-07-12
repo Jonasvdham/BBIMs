@@ -2,7 +2,7 @@ import numpy as np
 from scipy.integrate import quad
 import pandas as pd
 import matplotlib.pyplot as plt
-from make_dataset import make_datasets
+from make_dataset import make_datasets, MATERIALS
 
 """
 aCH4 - instant. radiative forcing per unit mass [W/m2 /kg]
@@ -28,7 +28,15 @@ EMISSIONFACTOR = 1
 
 
 def DLCA(
-    materials=["straw", "EPS", "XPS", "stone wool", "glass wool"],
+    materials=[
+        "straw",
+        "hemp",
+        "flax",
+        "EPS",
+        "XPS",
+        "stone wool",
+        "glass wool",
+    ],
     building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,
@@ -104,7 +112,16 @@ def C_N2O(t):
 
 
 def plot_GWI(
-    materials=["straw", "EPS", "XPS", "stone wool", "glass wool"],
+    materials=[
+        "straw",
+        "hemp",
+        "flax",
+        "EPS",
+        "XPS",
+        "stone wool",
+        "glass wool",
+        "gypsum",
+    ],
     building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,
@@ -116,8 +133,18 @@ def plot_GWI(
         materials, building_scenario, total_houses, time_horizon, timeframe
     )
     x = np.arange(timeframe) + 2023
-    for i, material in enumerate(materials):
-        plt.plot(x, GWIs[material][plottype], label=material)
+    color = iter(plt.cm.rainbow(np.linspace(0, 1, len(materials))))
+    for material in materials:
+        c = next(color)
+        plt.plot(x, GWIs[material][plottype], label=material, c=c)
+        if MATERIALS[material]["CO2bio"] != 0:
+            plt.plot(
+                x,
+                GWIs[material][plottype] + GWIs["gypsum"][plottype],
+                label=material + " + gypsum",
+                c=c,
+                linestyle="dashed",
+            )
     plt.xlabel("Years")
     plt.ylabel("Radiative forcing " + plottype)
     plt.legend()
@@ -140,10 +167,19 @@ def generate_plots(outfile=False):
         (1, 2024, ["normal"]),
         (150000, 2050, ["slow", "normal", "fast"]),
     ]:
-        for plottype in ["cum", "inst"]:
+        for plottype in ["cum", "inst_tot"]:
             for building_scenario in scenario[2]:
                 plot_GWI(
-                    ["straw", "EPS", "XPS", "stone wool", "glass wool"],
+                    [
+                        "straw",
+                        "hemp",
+                        "flax",
+                        "EPS",
+                        "XPS",
+                        "stone wool",
+                        "glass wool",
+                        "gypsum",
+                    ],
                     building_scenario,
                     scenario[0],
                     scenario[1],
