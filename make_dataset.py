@@ -210,9 +210,16 @@ def make_dataset(
     no_replacements = int(
         np.ceil(BUILDING_LIFETIME / MATERIALS[material]["lifetime"]) - 1
     )
-    waste_emissions = WASTE_DATA[
-        WASTE_DATA["Name"] == MATERIALS[material]["waste"][waste_scenario]
-    ][["CO2", "CH4", "N2O", "CO"]].iloc[0]
+    if waste_scenario == "test":
+        waste_emissions = pd.DataFrame(
+            np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
+        )
+        waste_emissions.loc[0] = [-MATERIALS[material]["CO2bio"], 0, 0, 0]
+        waste_emissions = waste_emissions.iloc[0]
+    else:
+        waste_emissions = WASTE_DATA[
+            WASTE_DATA["Name"] == MATERIALS[material]["waste"][waste_scenario]
+        ][["CO2", "CH4", "N2O", "CO"]].iloc[0]
 
     construction_emissions = construction(
         material, timeframe, mpy, no_replacements
@@ -334,6 +341,3 @@ def CO2bio(material, mpy, lifetime, timeframe):
     for i in range(len(mpy)):
         CO2bio_per_year[i] += mpy[i] * MATERIALS[material]["CO2bio"]
     return CO2bio_per_year
-
-
-# make_dataset(total_houses=1, time_horizon=2024, timeframe=76)

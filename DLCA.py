@@ -153,7 +153,7 @@ def plot_GWI(
 
     if outfile:
         plt.savefig(
-            f"plots/{total_houses}housesby{time_horizon}_{plottype}_{building_scenario}.svg"
+            f"plots/EOL_exp_{total_houses}housesby{time_horizon}_{plottype}_{building_scenario}.svg"
         )
 
     else:
