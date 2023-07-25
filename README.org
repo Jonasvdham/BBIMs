@@ -9,8 +9,8 @@ insulation materials (BBIMs)
 
 Notes
 - make_dataset assumes positive CO2bio, DLCA assumes negative
-** Rotation
 
+** Rotation
 
       #+begin_src python
 def CO2bio(material, ipy, lifetime, timeframe):
@@ -278,54 +278,16 @@ Next step is to check if DCF works properly
   #+begin_src python
 DCF(200)
 #+end_src
-** Missing data
-
-- EcoInvent: Flax, Hemp, Straw, EPS
-- Biogenic CO2: Hemp
 
 ** TODO
 
 - Write to output file
 - Generate better plots (radiative forcing, GWP)
-- Gather crop rotation periods
-- Include specific radiative forcing per unit mass (Hoxha e.a. 2020):
-  - For the CO2, CH4 and N2O the values are respectively:
-    - ACO2 = 1.76 × 10–15 Wm–2 kg–1;
-    - ACH4 = 1.28 × 10–13 Wm–2 kg–1;
-    - AN2O = 3.90 × 10–13 Wm–2 kg–1.
-  - the ones from the original matlab file are
-    - aCO2 = 0.0018088
-    - aCH4 = 0.129957
-- check atmospheric decay and influence of all GHGs
+- Could explore separately plotting different GHGs
 
 * Make Dataset
 
 [[file:make_dataset.py]]
-
-Notes
-- CO2_bio:
-  - Missing hemp
-- check lifecycle stages which are included now
-  - a1-a3 from Ecoinvent.tsv
-  - C from carbon content (KBOB)
-    - how does this work for non-biobased?
-  - D: can make some assumptions
-
-** adding gypsum
-
-Seems possible using the existing functions, slight modification needed to
-mass_per_house
-
-#+begin_src python
-def mass_per_house(material):
-    if material == "gypsum":
-        # 0.012m = 12mm of fibreboard
-        volume = M2FACADE * 0.012
-    else:
-        volume = M2FACADE * RVALUE * MATERIALS[material]["lambda"]
-    return volume * MATERIALS[material]["density"]
-#+end_src
-
 
 ** Plots
 
@@ -359,14 +321,6 @@ def hpy(houses=150000, years=27, plottype="inst", outfile=False):
     plt.close()
 
 #+end_src
-
-** data
-
-- Ecoinvent straw:
-  "Straw {CH}| wheat production, Swiss integrated production, extensive |
-  Cut-off, S"
-  extensive vs intensive?
-
 
 
 ** B/C/D
@@ -515,13 +469,11 @@ MATERIALS = {
 
 *** Module B
 
-- Need to model module B - replacement after functional lifetime.
+Model module B - replacement after functional lifetime.
   - In a dynamic model, module B should also be dynamic. I.e. start a whole new
     product lifecycle.
   - Can only be done after adding modules C & D
 
-
-**** new idea
 I can use copies of the dataset but only when I first have a dataset which for
 each house models:
 - construction
@@ -536,68 +488,10 @@ Example showing Edge case if building_lt % product_lt == 0:
 - A replacement includes both module A and module C/D costs
 - After building lifetime add EoL cost (only module C/D)
 
-**** old idea
-- I can use copies of the original dataset for this:
-
-  - The variables seem to remain the same [material, #houses, time_horizon,
-    timeframe]? Time might change.
-  - Make n copies of the original dataset which EXCLUDES module B
-
-
-#+begin_src python
-n = ceil(building lifetime / product lifetime) - 1
-for i in range(n):
-    # copy dataset
-    # prepend np.zeros((i+1) * product_lifetime)
-    # add to original dataset
-#+end_src
-
-- e.g. ceil(75 / 50) - 1 = 2  - 1 = 1 -> for replacement during lifetime
-- Edge case if building_lt % product_lt == 0
-- e.g. ceil(100 / 25) - 1 = 4 - 1 = 3 ->  3 'replacements'
-- the copies of the dataset will have i*product_lifetime zeros prepended
-
-
-**  CO2 issues
-
-*** Prepend 0s to extend emissions
-
-#+begin_src python
-# Do I want to prepend 0 rows for the lifetime of the building? Maybe only if they are plant based materials...
-dataset = pd.DataFrame(
-    np.zeros((MATERIALS[material]["lifetime"], 4)), columns=dataset.columns
-).append(dataset, ignore_index=True)
-#+end_src
-
-*** CO2bio
-It seems the EcoInvent data for BBIMs (CO2) is quite high. I thought biogenic
-CO2 might be included? I expect not, as it should just be phase A1-A3 but in
-case it needs to be subtracted in make_dataset:
-
-#+begin_src python
-# subtract biogenic co2 from kg co2
-biogenic = [
-    insulation_per_year[i] * MATERIALS[material]["CO2bio"]
-    if i < years
-    else 0.0
-    for i in range(len(insulation_per_year))
-]
-dataset["kg CO2"] = dataset["kg CO2"] + biogenic
-dataset["kg CO2"] = (
-    dataset["kg CO2"]
-    + np.append(np.zeros(MATERIALS[material]["lifetime"]), biogenic)[
-        :timeframe
-    ]
-)
-#+end_src
-
 ** TODO
 
 - Look into rounding off of numbers when reading in dataset
   - happens in .astype(float)
-- Fix placeholder values for rotation time
-  - model N(r/2, r/4) ?
-  - check if loop i in range(rotation) works for species with r=0.5
 - Remove placeholder values
   - M2 Facades, Rvalue, lambda values
 

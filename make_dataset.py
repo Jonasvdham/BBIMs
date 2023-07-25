@@ -44,19 +44,6 @@ MATERIALS = {
             "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
         ],
     },
-    "cork": {  # Ecoinvent
-        "name": "Cork slab {RER}| production | Cut-off, S",
-        "lambda": 0.04,  # placeholder
-        "density": 100,  # placeholder
-        "CO2bio": -0.496,
-        "rotation": 11,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-        ],
-    },
     "flax": {
         "name": "Fibre, flax {RoW}| fibre production, flax, retting | Cut-off, U",
         "lambda": 0.041,  # placeholder
