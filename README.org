@@ -1,33 +1,60 @@
+#+TITLE: BBIMS
+#+AUTHOR: Jonas van der Ham | MSc MADE
+#+EMAIL: Jonasvdham@gmail.com
+#+DATE: Tuesday, 25 July 2023
+#+STARTUP: showall
+#+PROPERTY: header-args :exports both :session bbims :cache no
+:PROPERTIES:
+#+OPTIONS: ^:nil
+#+LATEX_COMPILER: xelatex
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [logo, color, author]
+#+LATEX_HEADER: \insertauthor
+#+LATEX_HEADER: \usepackage{minted}
+#+LATEX_HEADER: \usepackage[style=ieee, citestyle=numeric-comp, isbn=false]{biblatex}
+#+LATEX_HEADER: \addbibresource{~/made/bibliography/references.bib}
+#+LATEX_HEADER: \setminted{bgcolor=WhiteSmoke}
+#+OPTIONS: toc:nil
+:END:
+
 * BBIMs
 
 Thesis research project into the carbon-removal potential of bio-based
 insulation materials (BBIMs)
 
-* DLCA
+** TODOs
+
+*** DLCA
+
+- Write to output file
+- Generate better plots (radiative forcing, GWP)
+- Could explore separately plotting different GHGs
+
+*** Make dataset
+
+- Ensure that the Ensemble is 592(?) houses, Amsterdam is 150k houses.
+- Look into rounding off of numbers when reading in dataset
+  - happens in .astype(float)
+- Remove placeholder values
+  - M2 Facades, Rvalue, lambda values
+
+** DLCA
 
 [[file:DLCA.py]]
 
-Notes
-- make_dataset assumes positive CO2bio, DLCA assumes negative
+*** Issue: Straw GWI_inst negative trail
 
-** Rotation
+From what I have explored so far the model seems correct. My explanation is as
+follows:
+The GWI(t) in year t is the sum over all years j=0 to j=t. For each of these
+years we count the emissions up to that year and multiply them with the
+necessary reduction factor (emissions from longer ago have a smaller
+influence).
+In the case of straw here, there is a huge negative set of emissions at the
+start which results in these negative emissions being summed over for all the
+rest of the years in GWI
 
-      #+begin_src python
-def CO2bio(material, ipy, lifetime, timeframe):
-    CO2bio_per_year = np.zeros(len(ipy) + MATERIALS[material]["rotation"])
-    for i, kg in enumerate(ipy):
-        for j in range(MATERIALS[material]["rotation"]):
-            CO2bio_per_year[i + j] += (
-                kg
-                * MATERIALS[material]["CO2bio"]
-                / MATERIALS[material]["rotation"]
-            )
-    return CO2bio_per_year[:timeframe]
-#+end_src
-
-** Issue: Straw GWI_inst negative trail
-
-*** Culprit
+**** Culprit
 
 The definition of the atmospheric decay function from Hoxha e.a. (2020) is as
 below. For large t, this function goes to a0Bern, which means that for large
@@ -61,19 +88,8 @@ def exp3(tf=100):
     plt.close()
 #+end_src
 
-*** Explanation
+**** exploration
 
-From what I have explored so far the model seems correct. My explanation is as
-follows:
-The GWI(t) in year t is the sum over all years j=0 to j=t. For each of these
-years we count the emissions up to that year and multiply them with the
-necessary reduction factor (emissions from longer ago have a smaller
-influence).
-In the case of straw here, there is a huge negative set of emissions at the
-start which results in these negative emissions being summed over for all the
-rest of the years in GWI
-
-*** exploration
 For straw, the trail of GWI_inst drops down from a small positive peak back to
 negative. In it's limit it should go to 0. Let's explore what's going on.
 
@@ -279,53 +295,61 @@ Next step is to check if DCF works properly
 DCF(200)
 #+end_src
 
-** TODO
-
-- Write to output file
-- Generate better plots (radiative forcing, GWP)
-- Could explore separately plotting different GHGs
-
-* Make Dataset
+** Make Dataset
 
 [[file:make_dataset.py]]
 
-** Plots
+*** EoL
 
-# Houses per year
+**** Incineration
 
-#+begin_src python
-def hpy(houses=150000, years=27, plottype="inst", outfile=False):
-    if plottype == "inst":
-        slow = houses_per_year_slow(houses, years)
-        fast = houses_per_year_fast(houses, years)
-        normal = [houses / years for i in range(years)]
-        title = "Number of houses constructed per year"
-        x = np.arange(years) + 2023
-    else:
-        slow = [(houses / (years ** 2)) * x ** 2 for x in range(years + 1)]
-        fast = [(houses / (years ** 0.5)) * x ** 0.5 for x in range(years + 1)]
-        normal = [i * houses / years for i in range(years + 1)]
-        title = "Total number of houses constructed"
-        x = np.arange(years + 1) + 2023
-    plt.plot(x, slow, label="slow")
-    plt.plot(x, fast, label="fast")
-    plt.plot(x, normal, label="normal")
-    plt.legend()
-    plt.title(title)
-    plt.grid(True)
-
-    if outfile:
-        plt.savefig(f"plots/houses_per_year.svg")
-    else:
-        plt.show()
-    plt.close()
-
-#+end_src
+|-----+--------------+----------+----------+----------|
+|     |          CO2 |      CH4 |      N2O |       CO |
+|-----+--------------+----------+----------+----------|
+|   0 |    25.627314 | 0.055009 | 0.099952 | 0.131472 |
+|   1 | -1579.259733 | 0.000000 | 0.000000 | 0.000000 |
+|   2 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+|   3 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| ... |          ... |      ... |      ... |      ... |
+|  49 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+|  50 |  1604.887047 | 0.055009 | 0.099952 | 0.131472 |
+|  51 | -1579.259733 | 0.000000 | 0.000000 | 0.000000 |
+|  52 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| ... |          ... |      ... |      ... |      ... |
+|  74 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+|  75 |  1579.259733 | 0.000000 | 0.000000 | 0.000000 |
+|  76 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| ... |          ... |      ... |      ... |      ... |
+|  99 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+|-----+--------------+----------+----------+----------|
 
 
-** B/C/D
+**** Anaerobic disgestation
 
-*** End-of-life
+|------+--------------+----------+----------+----------|
+| year |          CO2 |      CH4 |      N2O |       CO |
+|------+--------------+----------+----------+----------|
+|    0 |    25.627314 | 0.055009 | 0.099952 | 0.131472 |
+|    1 | -1579.259733 | 0.000000 | 0.000000 | 0.000000 |
+|    2 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+|    3 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+|  ... |          ... |      ... |      ... |      ... |
+|   49 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+|   50 |   309.835420 | 2.890776 | 0.139512 | 0.247459 |
+|   51 | -1579.259733 | 0.000000 | 0.000000 | 0.000000 |
+|   52 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+|  ... |          ... |      ... |      ... |      ... |
+|   74 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+|   75 |   284.208107 | 2.835767 | 0.039560 | 0.115987 |
+|   76 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+|  ... |          ... |      ... |      ... |      ... |
+|   99 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
+|------+--------------+----------+----------+----------|
+
+
+*** B/C/D
+
+**** End-of-life
 
 - Need to add EoL data from ecoinvent_waste.csv (module C)
 - Optional module D benefits from ecoinvent_energy.csv (assuming energy
@@ -467,7 +491,7 @@ MATERIALS = {
 }
 #+end_src
 
-*** Module B
+**** Module B
 
 Model module B - replacement after functional lifetime.
   - In a dynamic model, module B should also be dynamic. I.e. start a whole new
@@ -488,14 +512,8 @@ Example showing Edge case if building_lt % product_lt == 0:
 - A replacement includes both module A and module C/D costs
 - After building lifetime add EoL cost (only module C/D)
 
-** TODO
 
-- Look into rounding off of numbers when reading in dataset
-  - happens in .astype(float)
-- Remove placeholder values
-  - M2 Facades, Rvalue, lambda values
-
-* Demo
+** Demo
 
 housing scenarios
 #+begin_src python
@@ -516,4 +534,37 @@ Plotting them:
 #+begin_src python
 plot_GWI(['cork', 'cellulose', 'stone wool'], building_scenario='normal', plottype='inst')
 plot_GWI(['cork', 'cellulose', 'stone wool'], building_scenario='normal', plottype='cum')
+#+end_src
+
+*** Plots
+
+# Houses per year
+
+#+begin_src python
+def hpy(houses=150000, years=27, plottype="inst", outfile=False):
+    if plottype == "inst":
+        slow = houses_per_year_slow(houses, years)
+        fast = houses_per_year_fast(houses, years)
+        normal = [houses / years for i in range(years)]
+        title = "Number of houses constructed per year"
+        x = np.arange(years) + 2023
+    else:
+        slow = [(houses / (years ** 2)) * x ** 2 for x in range(years + 1)]
+        fast = [(houses / (years ** 0.5)) * x ** 0.5 for x in range(years + 1)]
+        normal = [i * houses / years for i in range(years + 1)]
+        title = "Total number of houses constructed"
+        x = np.arange(years + 1) + 2023
+    plt.plot(x, slow, label="slow")
+    plt.plot(x, fast, label="fast")
+    plt.plot(x, normal, label="normal")
+    plt.legend()
+    plt.title(title)
+    plt.grid(True)
+
+    if outfile:
+        plt.savefig(f"plots/houses_per_year.svg")
+    else:
+        plt.show()
+    plt.close()
+
 #+end_src

@@ -1,8 +1,7 @@
 import numpy as np
 from scipy.integrate import quad
 import pandas as pd
-import matplotlib.pyplot as plt
-from make_dataset import make_datasets, MATERIALS
+from make_dataset import make_datasets
 
 """
 aCH4 - instant. radiative forcing per unit mass [W/m2 /kg]
@@ -24,7 +23,6 @@ TauCH4 = 12
 TauN2O = 114
 aBern = [0.259, 0.338, 0.186]
 a0Bern = 0.217
-EMISSIONFACTOR = 1
 
 
 def DLCA(
@@ -36,14 +34,21 @@ def DLCA(
         "XPS",
         "stone wool",
         "glass wool",
+        "gypsum",
     ],
     building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,
     timeframe=200,
+    waste_scenario=0,
 ):
     dataset = make_datasets(
-        materials, building_scenario, total_houses, time_horizon, timeframe
+        materials,
+        building_scenario,
+        total_houses,
+        time_horizon,
+        timeframe,
+        waste_scenario,
     )
     GWIs = {}
     for material in materials:
@@ -109,81 +114,3 @@ def C_CH4(t):
 
 def C_N2O(t):
     return np.exp(-t / TauN2O)
-
-
-def plot_GWI(
-    materials=[
-        "straw",
-        "hemp",
-        "flax",
-        "EPS",
-        "XPS",
-        "stone wool",
-        "glass wool",
-        "gypsum",
-    ],
-    building_scenario="normal",
-    total_houses=150000,
-    time_horizon=2050,
-    timeframe=200,
-    plottype="inst_tot",
-    outfile=False,
-):
-    GWIs = DLCA(
-        materials, building_scenario, total_houses, time_horizon, timeframe
-    )
-    x = np.arange(timeframe) + 2023
-    color = iter(plt.cm.rainbow(np.linspace(0, 1, len(materials))))
-    for material in materials:
-        c = next(color)
-        plt.plot(x, GWIs[material][plottype], label=material, c=c)
-        if MATERIALS[material]["CO2bio"] != 0:
-            plt.plot(
-                x,
-                GWIs[material][plottype] + GWIs["gypsum"][plottype],
-                label=material + " + gypsum",
-                c=c,
-                linestyle="dashed",
-            )
-    plt.xlabel("Years")
-    plt.ylabel("Radiative forcing " + plottype)
-    plt.legend()
-    plt.title(f"Global warming Impact ({plottype}, {building_scenario})")
-    plt.grid(True)
-
-    if outfile:
-        plt.savefig(
-            f"plots/EOL_exp_{total_houses}housesby{time_horizon}_{plottype}_{building_scenario}.svg"
-        )
-
-    else:
-        plt.show()
-
-    plt.close()
-
-
-def generate_plots(outfile=False):
-    for scenario in [
-        (1, 2024, ["normal"]),
-        (150000, 2050, ["slow", "normal", "fast"]),
-    ]:
-        for plottype in ["cum", "inst_tot"]:
-            for building_scenario in scenario[2]:
-                plot_GWI(
-                    [
-                        "straw",
-                        "hemp",
-                        "flax",
-                        "EPS",
-                        "XPS",
-                        "stone wool",
-                        "glass wool",
-                        "gypsum",
-                    ],
-                    building_scenario,
-                    scenario[0],
-                    scenario[1],
-                    200,
-                    plottype,
-                    outfile,
-                )

@@ -1,156 +1,16 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from constants import (
+    MATERIALS,
+    CURRENT_YEAR,
+    M2FACADE,
+    RVALUE,
+    BUILDING_LIFETIME,
+)
+from data_loader import load_data
 
-CURRENT_YEAR = 2023
-M2FACADE = 4  # placeholder
-RVALUE = 3.5  # placeholder
-BUILDING_LIFETIME = 75
-MATERIALS = {
-    "test": {
-        "name": "test",
-        "lambda": 0.05,
-        "density": 50,
-        "CO2bio": -100,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S"
-        ],
-    },
-    "gypsum": {
-        "name": "Gypsum fibreboard {CH}| production | Cut-off, S",
-        "density": 1150,  # placeholder
-        "CO2bio": -0,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Waste gypsum {CH}| market for waste gypsum | Cut-off, S",
-            "Waste gypsum plasterboard {CH}| treatment of, collection for final disposal | Cut-off, S",
-            "Waste gypsum plasterboard {CH}| treatment of, recycling | Cut-off, S",
-            "Waste gypsum plasterboard {CH}| treatment of, sorting plant | Cut-off, S",
-        ],
-    },
-    "cellulose": {  # Ecoinvent
-        "name": "Cellulose fibre, inclusive blowing in {CH}| production | Cut-off, S",
-        "lambda": 0.038,
-        "density": 52,
-        "CO2bio": -0,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-        ],
-    },
-    "flax": {
-        "name": "Fibre, flax {RoW}| fibre production, flax, retting | Cut-off, U",
-        "lambda": 0.041,  # placeholder
-        "density": 40,
-        "CO2bio": -0.44,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-        ],
-    },
-    "hemp": {
-        "name": "Fibre, hemp {RoW}| fibre production, hemp, retting | Cut-off, U",
-        "lambda": 0.041,
-        "density": 36,
-        "CO2bio": -0.377,  # from biofib'chanvre EPD
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-        ],
-    },
-    "straw": {  # Ecoinvent
-        "name": "Straw {CH}| wheat production, Swiss integrated production, extensive | Cut-off, S",
-        "lambda": 0.44,
-        "density": 100,
-        "CO2bio": -0.368,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-        ],
-    },
-    "glass wool": {  # Ecoinvent
-        "name": "Glass wool mat {CH}| production | Cut-off, S",
-        "lambda": 0.036,
-        "density": 22,
-        "CO2bio": -0,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Waste mineral wool {Europe without Switzerland}| market for waste mineral wool | Cut-off, S",
-            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, collection for final disposal | Cut-off, S",
-            "Waste mineral wool, for final disposal {Europe without Switzerland}| treatment of waste mineral wool, inert material landfill | Cut - off, S",
-        ],
-    },
-    "stone wool": {  # Ecoinvent
-        "name": "Stone wool {CH}| stone wool production | Cut-off, S",
-        "lambda": 0.036,
-        "density": 29.5,
-        "CO2bio": -0,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Waste mineral wool {Europe without Switzerland}| market for waste mineral wool | Cut-off, S",
-            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, collection for final disposal | Cut-off, S",
-            "Waste mineral wool, for final disposal {Europe without Switzerland}| treatment of waste mineral wool, inert material landfill | Cut - off, S",
-        ],
-    },
-    "EPS": {  # Ecoinvent
-        "name": "Polystyrene foam slab {CH}| production, 45% recycled | Cut-off, S",
-        "lambda": 0.035,
-        "density": 30,
-        "CO2bio": -0,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Waste polystyrene {Europe without Switzerland}| market for waste polystyrene | Cut-off, S",
-            "Waste expanded polystyrene {CH}| treatment of, municipal incineration | Cut-off, S",
-            "Waste polystyrene {Europe without Switzerland}| treatment of waste polystyrene, sanitary landfill | Cut-off, S",
-        ],
-    },
-    "XPS": {  # Ecoinvent
-        "name": "Polystyrene, extruded {RER}| polystyrene production, extruded, CO2 blown | Cut-off, S",
-        "lambda": 0.033,
-        "density": 40,  # placeholder
-        "CO2bio": -0,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Waste polystyrene {Europe without Switzerland}| market for waste polystyrene | Cut-off, S",
-            "Waste expanded polystyrene {CH}| treatment of, municipal incineration | Cut-off, S",
-            "Waste polystyrene {Europe without Switzerland}| treatment of waste polystyrene, sanitary landfill | Cut-off, S",
-        ],
-    },
-}
-
-MATERIAL_DATA = pd.read_csv("data/ecoinvent_material.csv", sep=";")
-MATERIAL_DATA[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = MATERIAL_DATA[
-    ["CO2-eq", "CO2", "CH4", "N2O", "CO"]
-].apply(lambda x: x.str.replace(",", ".").astype(float))
-
-WASTE_DATA = pd.read_csv("data/ecoinvent_waste.csv", sep=";")
-WASTE_DATA[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = WASTE_DATA[
-    ["CO2-eq", "CO2", "CH4", "N2O", "CO"]
-].apply(lambda x: x.str.replace(",", ".").astype(float))
-
-ENERGY_DATA = pd.read_csv("data/ecoinvent_energy.csv", sep=";")
-ENERGY_DATA[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = ENERGY_DATA[
-    ["CO2-eq", "CO2", "CH4", "N2O", "CO"]
-].apply(lambda x: x.str.replace(",", ".").astype(float))
+MATERIAL_DATA, WASTE_DATA, ENERGY_DATA = load_data()
 
 
 def make_datasets(
@@ -197,7 +57,10 @@ def make_dataset(
     no_replacements = int(
         np.ceil(BUILDING_LIFETIME / MATERIALS[material]["lifetime"]) - 1
     )
-    if waste_scenario == "test":
+    if (
+        MATERIALS[material]["CO2bio"] != 0
+        and MATERIALS[material]["waste"][waste_scenario] == "incineration"
+    ):
         waste_emissions = pd.DataFrame(
             np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
         )
@@ -207,7 +70,6 @@ def make_dataset(
         waste_emissions = WASTE_DATA[
             WASTE_DATA["Name"] == MATERIALS[material]["waste"][waste_scenario]
         ][["CO2", "CH4", "N2O", "CO"]].iloc[0]
-
     construction_emissions = construction(
         material, timeframe, mpy, no_replacements
     )
@@ -233,9 +95,10 @@ def construction(material, timeframe, mpy, no_replacements):
             .multiply(mpy, axis=0)
         )
     )
-    dataset["CO2"] += CO2bio(
-        material, mpy, MATERIALS[material]["lifetime"], timeframe
-    )
+
+    if MATERIALS[material]["plant_based"]:
+        # shift by 1 year for short-rotation period crops
+        dataset["CO2"] += np.append(0, CO2bio(material, mpy)[:-1])
 
     tmp = pd.DataFrame(
         np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
@@ -323,7 +186,7 @@ def mass_per_house(material):
     return volume * MATERIALS[material]["density"]
 
 
-def CO2bio(material, mpy, lifetime, timeframe):
+def CO2bio(material, mpy):
     CO2bio_per_year = np.zeros(len(mpy))
     for i in range(len(mpy)):
         CO2bio_per_year[i] += mpy[i] * MATERIALS[material]["CO2bio"]
