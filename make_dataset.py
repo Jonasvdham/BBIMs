@@ -57,6 +57,7 @@ def make_dataset(
     no_replacements = int(
         np.ceil(BUILDING_LIFETIME / MATERIALS[material]["lifetime"]) - 1
     )
+
     if (
         MATERIALS[material]["CO2bio"] != 0
         and MATERIALS[material]["waste"][waste_scenario] == "incineration"

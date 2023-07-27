@@ -3,17 +3,20 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from make_dataset import MATERIALS
+from datetime import datetime
 
 
 def plot_GWI(
     materials=[
+        "stone wool",
+        "glass wool",
+        "EPS",
+        "XPS",
+        "cellulose",
+        "wood fiber",
         "straw",
         "hemp",
         "flax",
-        "EPS",
-        "XPS",
-        "stone wool",
-        "glass wool",
         "gypsum",
     ],
     building_scenario="normal",
@@ -32,11 +35,13 @@ def plot_GWI(
         timeframe,
         waste_scenario,
     )
+    EoL = ["Incineration", "Biogas"]
     x = np.arange(timeframe) + 2023
     color = iter(plt.cm.rainbow(np.linspace(0, 1, len(materials))))
-    for material in materials[:-1]:
-        c = next(color)
-        plt.plot(x, GWIs[material][plottype], label=material, c=c)
+    for material in materials:
+        if material != "gypsum":
+            c = next(color)
+            plt.plot(x, GWIs[material][plottype], label=material, c=c)
         if MATERIALS[material]["CO2bio"] != 0 and "gypsum" in materials:
             plt.plot(
                 x,
@@ -47,12 +52,14 @@ def plot_GWI(
     plt.xlabel("Years")
     plt.ylabel("Radiative forcing " + plottype)
     plt.legend()
-    plt.title(f"Global warming Impact ({plottype}, {building_scenario})")
+    plt.title(
+        f"Global warming Impact ({plottype}, {building_scenario} - EoL: {EoL[waste_scenario]})"
+    )
     plt.grid(True)
 
     if outfile:
         plt.savefig(
-            f"plots/{total_houses}housesby{time_horizon}_{plottype}_{building_scenario}_EoL{waste_scenario}.svg"
+            f"plots/{datetime.today().strftime('%Y-%m-%d')}_{total_houses}housesby{time_horizon}_{plottype}_{building_scenario}_{EoL[waste_scenario]}.svg"
         )
 
     else:
@@ -71,14 +78,16 @@ def generate_plots(outfile=False):
                 for building_scenario in scenario[2]:
                     plot_GWI(
                         [
+                            "stone wool",
+                            "glass wool",
+                            "EPS",
+                            "XPS",
+                            "cellulose",
+                            "wood fiber",
                             "straw",
                             "hemp",
                             "flax",
-                            "EPS",
-                            "XPS",
-                            "stone wool",
-                            "glass wool",
-                            # "gypsum",
+                            "gypsum",
                         ],
                         building_scenario,
                         scenario[0],

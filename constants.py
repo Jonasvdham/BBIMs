@@ -71,6 +71,19 @@ MATERIALS = {
             "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
         ],
     },
+    "wood fiber": {
+        "name": "Stone groundwood pulp {RER}| production | Cut-off, S",
+        "plant_based": True,
+        "lambda": 0.038,  # placeholder
+        "density": 34.5,
+        "CO2bio": -0.4 * 44 / 12,  # placeholder
+        "rotation": 50,  # placeholder
+        "lifetime": 50,
+        "waste": [
+            "incineration",
+            "Waste gypsum plasterboard {CH}| treatment of, sorting plant | Cut-off, S",
+        ],
+    },
     "straw": {  # Ecoinvent
         "name": "Straw {CH}| wheat production, Swiss integrated production, extensive | Cut-off, S",
         "plant_based": True,
