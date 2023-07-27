@@ -10,7 +10,7 @@ from constants import (
 )
 from data_loader import load_data
 
-MATERIAL_DATA, WASTE_DATA, ENERGY_DATA = load_data()
+MATERIAL_DATA, WASTE_DATA, ENERGY_DATA, TRANSPORT_DATA = load_data()
 
 
 def make_datasets(
@@ -86,19 +86,31 @@ def make_dataset(
 
 def construction(material, timeframe, mpy, no_replacements):
     dataset = pd.DataFrame(
-        (
-            MATERIAL_DATA[
-                MATERIAL_DATA["Name"] == MATERIALS[material]["name"]
-            ][["CO2", "CH4", "N2O", "CO"]]
-            .reset_index(drop=True)
-            .loc[[0 for i in range(timeframe)]]
-            .multiply(mpy, axis=0)
-        )
+        MATERIAL_DATA[MATERIAL_DATA["Name"] == MATERIALS[material]["name"]][
+            ["CO2", "CH4", "N2O", "CO"]
+        ]
+        .reset_index(drop=True)
+        .loc[[0 for i in range(timeframe)]]
+        .multiply(mpy, axis=0)
     )
 
     if MATERIALS[material]["plant_based"]:
         # shift by 1 year for short-rotation period crops
-        dataset["CO2"] += np.append(0, CO2bio(material, mpy)[:-1])
+        dataset["CO2"] += np.append(
+            0, [i * MATERIALS[material]["CO2bio"] for i in mpy[:-1]]
+        )
+        # Add truck emissions, 11750 kg per truck, 50 km per truck
+        dataset += pd.DataFrame(
+            i
+            / 11750
+            * 50
+            * TRANSPORT_DATA[
+                TRANSPORT_DATA["Name"] == MATERIALS["truck"]["name"]
+            ][["CO2", "CH4", "N2O", "CO"]]
+            .reset_index(drop=True)
+            .loc[0]
+            for i in mpy
+        )
 
     tmp = pd.DataFrame(
         np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
@@ -184,10 +196,3 @@ def mass_per_house(material):
     else:
         volume = M2FACADE * RVALUE * MATERIALS[material]["lambda"]
     return volume * MATERIALS[material]["density"]
-
-
-def CO2bio(material, mpy):
-    CO2bio_per_year = np.zeros(len(mpy))
-    for i in range(len(mpy)):
-        CO2bio_per_year[i] += mpy[i] * MATERIALS[material]["CO2bio"]
-    return CO2bio_per_year

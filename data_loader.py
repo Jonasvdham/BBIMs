@@ -17,4 +17,9 @@ def load_data():
         ["CO2-eq", "CO2", "CH4", "N2O", "CO"]
     ].apply(lambda x: x.str.replace(",", ".").astype(float))
 
-    return MATERIAL_DATA, WASTE_DATA, ENERGY_DATA
+    TRANSPORT_DATA = pd.read_csv("data/ecoinvent_transport.csv", sep=";")
+    TRANSPORT_DATA[["CO2-eq", "CO2", "CH4", "N2O", "CO"]] = TRANSPORT_DATA[
+        ["CO2-eq", "CO2", "CH4", "N2O", "CO"]
+    ].apply(lambda x: x.str.replace(",", ".").astype(float))
+
+    return MATERIAL_DATA, WASTE_DATA, ENERGY_DATA, TRANSPORT_DATA

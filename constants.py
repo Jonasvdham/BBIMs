@@ -3,6 +3,9 @@ M2FACADE = 7.6
 RVALUE = 3.5
 BUILDING_LIFETIME = 75
 MATERIALS = {
+    "truck": {
+        "name": "Transport, freight, lorry 7.5-16 metric ton, EURO3 {GLO}| market for | Cut-off, S"
+    },
     "test": {
         "name": "test",
         "plant_based": False,
