@@ -72,9 +72,9 @@ MATERIALS = {
         ],
     },
     "wood fiber": {
-        "name": "Stone groundwood pulp {RER}| production | Cut-off, S",
+        "name": "Wood wool {RER}| production | Cut-off, S",
         "plant_based": True,
-        "lambda": 0.038,  # placeholder
+        "lambda": 0.046,  # placeholder
         "density": 34.5,
         "CO2bio": -0.4 * 44 / 12,  # placeholder
         "rotation": 50,  # placeholder

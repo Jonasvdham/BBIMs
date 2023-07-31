@@ -346,150 +346,27 @@ DCF(200)
 |   99 |     0.000000 | 0.000000 | 0.000000 | 0.000000 |
 |------+--------------+----------+----------+----------|
 
+*** CO2bio
+
+Had previously removed this as all rotation periods were 1. If I take wood
+fibre insulation back implement CO2bio like this:
+
+  #+begin_src python
+def CO2bio(material, insulation_per_year, timeframe):
+    CO2bio_per_year = np.zeros(
+        len(insulation_per_year) + MATERIALS[material]["rotation"]
+    )
+    for i, kg in enumerate(insulation_per_year):
+        for j in range(MATERIALS[material]["rotation"]):
+            CO2bio_per_year[i + j] += (
+                kg
+                * MATERIALS[material]["CO2bio"]
+                / MATERIALS[material]["rotation"]
+            )
+    return CO2bio_per_year[:timeframe]
+#+end_src
 
 *** B/C/D
-
-**** End-of-life
-
-- Need to add EoL data from ecoinvent_waste.csv (module C)
-- Optional module D benefits from ecoinvent_energy.csv (assuming energy
-  recovery / biogas production)
-
-Relevant EcoInvent data
-  #+begin_src python
-MATERIALS = {
-    "cellulose": {  # Ecoinvent
-        "name": "Cellulose fibre, inclusive blowing in {CH}| production | Cut-off, S",
-        "lambda": 0.038,
-        "density": 52,
-        "CO2bio": -0,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-        ],
-    },
-    "cork": {  # Ecoinvent
-        "name": "Cork slab {RER}| production | Cut-off, S",
-        "lambda": 0.04,  # placeholder
-        "density": 100,  # placeholder
-        "CO2bio": -0.496,
-        "rotation": 11,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-        ],
-    },
-    "flax": {
-        "name": "",
-        "lambda": 0.04,  # placeholder
-        "density": 40,
-        "CO2bio": -0.44,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-        ],
-    },
-    "hemp": {
-        "name": "",
-        "lambda": 0.041,
-        "density": 36,
-        "CO2bio": -0.44,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-        ],
-    },
-    "straw": {  # Ecoinvent
-        "name": "Straw {CH}| wheat production, Swiss integrated production, extensive | Cut-off, S",
-        "lambda": 0.44,
-        "density": 100,
-        "CO2bio": -0.368,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-        ],
-    },
-    "glass wool": {  # Ecoinvent
-        "name": "Glass wool mat {CH}| production | Cut-off, S",
-        "lambda": 0.036,
-        "density": 22,
-        "CO2bio": -0,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Waste mineral wool {Europe without Switzerland}| market for waste mineral wool | Cut-off, S",
-            "Waste mineral wool, for final disposal {Europe without Switzerland}| market for waste mineral wool, final disposal | Cut-off, S",
-            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, collection for final disposal | Cut-off, S",
-            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, recycling | Cut-off, S",
-            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, sorting plant | Cut-off, S",
-            "Waste mineral wool, for final disposal {CH}| treatment of waste mineral wool, inert material landfill | Cut-off, S",
-            "Waste mineral wool, for final disposal {Europe without Switzerland}| treatment of waste mineral wool, inert material landfill | Cut - off, S",
-        ],
-    },
-    "stone wool": {  # Ecoinvent
-        "name": "Stone wool {CH}| stone wool production | Cut-off, S",
-        "lambda": 0.036,
-        "density": 29.5,
-        "CO2bio": -0,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Waste mineral wool {Europe without Switzerland}| market for waste mineral wool | Cut-off, S",
-            "Waste mineral wool, for final disposal {Europe without Switzerland}| market for waste mineral wool, final disposal | Cut-off, S",
-            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, collection for final disposal | Cut-off, S",
-            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, recycling | Cut-off, S",
-            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, sorting plant | Cut-off, S",
-            "Waste mineral wool, for final disposal {CH}| treatment of waste mineral wool, inert material landfill | Cut-off, S",
-            "Waste mineral wool, for final disposal {Europe without Switzerland}| treatment of waste mineral wool, inert material landfill | Cut - off, S",
-        ],
-    },
-    "XPS": {  # Ecoinvent
-        "name": "Polystyrene, extruded {RER}| polystyrene production, extruded, CO2 blown | Cut-off, S",
-        "lambda": 0.033,
-        "density": 40,  # placeholder
-        "CO2bio": -0,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Waste polystyrene {GLO}| market for | Cut-off, S",
-            "Waste expanded polystyrene {GLO}| market for | Cut-off, S",
-            "Waste polystyrene {CH}| market for waste polystyrene | Cut-off, S",
-            "Waste polystyrene {Europe without Switzerland}| market for waste polystyrene | Cut-off, S",
-            "Waste polystyrene {RoW}| market for waste polystyrene | Cut-off, S",
-            "Waste polystyrene isolation, flame-retardant {CH}| market for waste polystyrene isolation, flame-retardant | Cut-off, S",
-            "Waste polystyrene isolation, flame-retardant {Europe without Switzerland}| market for waste polystyrene isolation, flame-retardant | Cut-off, S",
-            "Waste polystyrene isolation, flame-retardant {RoW}| market for waste polystyrene isolation, flame-retardant | Cut-off, S",
-            "Waste polystyrene isolation, flame-retardant {CH}| treatment of, collection for final disposal | Cut-off, S",
-            "Waste polystyrene isolation, flame-retardant {Europe without Switzerland}| treatment of waste polystyrene isolation, flame-retardant, collection for final disposal | Cut-off, S",
-            "Waste polystyrene isolation, flame-retardant {RoW}| treatment of, collection for final disposal | Cut-off, S",
-            "Waste expanded polystyrene {CH}| treatment of, municipal incineration | Cut-off, S",
-            "Waste expanded polystyrene {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-            "Waste expanded polystyrene {RoW}| treatment of, municipal incineration | Cut-off, S",
-            "Waste polystyrene {CH}| treatment of, municipal incineration | Cut-off, S",
-            "Waste polystyrene {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
-            "Waste polystyrene {Europe without Switzerland}| treatment of waste polystyrene, municipal incineration | Cut-off, S",
-            "Waste polystyrene {RoW}| treatment of waste polystyrene, municipal incineration | Cut-off, S",
-            "Waste polystyrene {CH}| treatment of, sanitary landfill | Cut-off, S",
-            "Waste polystyrene {Europe without Switzerland}| treatment of waste polystyrene, sanitary landfill | Cut-off, S",
-            "Waste polystyrene {RoW}| treatment of waste polystyrene, sanitary landfill | Cut-off, S",
-        ],
-    },
-}
-#+end_src
 
 **** Module B
 

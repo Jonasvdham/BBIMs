@@ -96,10 +96,7 @@ def construction(material, timeframe, mpy, no_replacements):
     )
 
     if MATERIALS[material]["plant_based"]:
-        # shift by 1 year for short-rotation period crops
-        dataset["CO2"] += np.append(
-            0, [i * MATERIALS[material]["CO2bio"] for i in mpy[:-1]]
-        )
+        dataset["CO2"] += CO2bio(material, mpy, timeframe)
         # Add truck emissions, 11750 kg per truck, 50 km per truck
         dataset += pd.DataFrame(
             i
@@ -197,3 +194,15 @@ def mass_per_house(material):
     else:
         volume = M2FACADE * RVALUE * MATERIALS[material]["lambda"]
     return volume * MATERIALS[material]["density"]
+
+
+def CO2bio(material, mpy, timeframe):
+    CO2bio_per_year = np.zeros(len(mpy) + MATERIALS[material]["rotation"])
+    for i, kg in enumerate(mpy):
+        for j in range(MATERIALS[material]["rotation"]):
+            CO2bio_per_year[i + j + 1] += (
+                kg
+                * MATERIALS[material]["CO2bio"]
+                / MATERIALS[material]["rotation"]
+            )
+    return CO2bio_per_year[:timeframe]
