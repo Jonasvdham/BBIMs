@@ -10,6 +10,7 @@ MATERIALS = {
         "name": "test",
         "plant_based": False,
         "lambda": 0.05,
+        "fire_class": "A1",
         "density": 50,
         "CO2bio": -100 * 44 / 12,
         "rotation": 1,
@@ -34,6 +35,7 @@ MATERIALS = {
         "name": "Cellulose fibre, inclusive blowing in {CH}| production | Cut-off, S",
         "plant_based": False,
         "lambda": 0.038,
+        "fire_class": "B",
         "density": 52,
         "CO2bio": -0.404 * 44 / 12,
         "rotation": 1,
@@ -47,6 +49,7 @@ MATERIALS = {
         "name": "Fibre, flax {RoW}| fibre production, flax, retting | Cut-off, U",
         "plant_based": True,
         "lambda": 0.041,  # placeholder
+        "fire_class": "E",
         "density": 40,
         "CO2bio": -0.44 * 44 / 12,
         "rotation": 1,
@@ -62,6 +65,7 @@ MATERIALS = {
         "name": "Fibre, hemp {RoW}| fibre production, hemp, retting | Cut-off, U",
         "plant_based": True,
         "lambda": 0.041,
+        "fire_class": "E",
         "density": 36,
         "CO2bio": -0.377 * 44 / 12,  # from biofib'chanvre EPD
         "rotation": 1,
@@ -75,6 +79,7 @@ MATERIALS = {
         "name": "Wood wool {RER}| production | Cut-off, S",
         "plant_based": True,
         "lambda": 0.046,  # placeholder
+        "fire_class": "E",
         "density": 34.5,
         "CO2bio": -0.4 * 44 / 12,  # placeholder
         "rotation": 50,  # placeholder
@@ -88,6 +93,7 @@ MATERIALS = {
         "name": "Straw {CH}| wheat production, Swiss integrated production, extensive | Cut-off, S",
         "plant_based": True,
         "lambda": 0.44,
+        "fire_class": "E",
         "density": 100,
         "CO2bio": -0.368 * 44 / 12,
         "rotation": 1,
@@ -101,6 +107,7 @@ MATERIALS = {
         "name": "Glass wool mat {CH}| production | Cut-off, S",
         "plant_based": False,
         "lambda": 0.036,
+        "fire_class": "A1",
         "density": 22,
         "CO2bio": -0,
         "rotation": 1,
@@ -117,6 +124,7 @@ MATERIALS = {
         "name": "Stone wool {CH}| stone wool production | Cut-off, S",
         "plant_based": False,
         "lambda": 0.036,
+        "fire_class": "A1",
         "density": 29.5,
         "CO2bio": -0,
         "rotation": 1,
@@ -133,6 +141,7 @@ MATERIALS = {
         "name": "Polystyrene foam slab {CH}| production, 45% recycled | Cut-off, S",
         "plant_based": False,
         "lambda": 0.035,
+        "fire_class": "E",
         "density": 30,
         "CO2bio": -0,
         "rotation": 1,
@@ -147,6 +156,7 @@ MATERIALS = {
         "name": "Polystyrene, extruded {RER}| polystyrene production, extruded, CO2 blown | Cut-off, S",
         "plant_based": False,
         "lambda": 0.033,
+        "fire_class": "E",
         "density": 40,  # placeholder
         "CO2bio": -0,
         "rotation": 1,
