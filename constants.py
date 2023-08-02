@@ -25,19 +25,6 @@ MATERIALS = {
     "truck": {
         "name": "Transport, freight, lorry 7.5-16 metric ton, EURO3 {GLO}| market for | Cut-off, S"
     },
-    "test": {
-        "name": "test",
-        "plant_based": False,
-        "lambda": 0.05,
-        "fire_class": "A1",
-        "density": 50,
-        "CO2bio": -100 * 44 / 12,
-        "rotation": 1,
-        "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S"
-        ],
-    },
     "gypsum": {
         "name": "Gypsum fibreboard {CH}| production | Cut-off, S",
         "plant_based": False,

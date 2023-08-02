@@ -14,7 +14,17 @@ MATERIAL_DATA, WASTE_DATA, ENERGY_DATA, TRANSPORT_DATA = load_data()
 
 
 def make_datasets(
-    materials=["straw", "cellulose", "glass wool", "stone wool", "EPS", "XPS"],
+    materials=[
+        "straw",
+        "hemp",
+        "flax",
+        "wood fiber",
+        "EPS",
+        "XPS",
+        "stone wool",
+        "glass wool",
+        "gypsum",
+    ],
     building_scenario="normal",
     total_houses=150000,
     time_horizon=2050,
@@ -57,20 +67,8 @@ def make_dataset(
     no_replacements = int(
         np.ceil(BUILDING_LIFETIME / MATERIALS[material]["lifetime"]) - 1
     )
+    waste_emissions = waste_process(material, timeframe, waste_scenario)
 
-    if (
-        MATERIALS[material]["CO2bio"] != 0
-        and MATERIALS[material]["waste"][waste_scenario] == "incineration"
-    ):
-        waste_emissions = pd.DataFrame(
-            np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
-        )
-        waste_emissions.loc[0] = [-MATERIALS[material]["CO2bio"], 0, 0, 0]
-        waste_emissions = waste_emissions.iloc[0]
-    else:
-        waste_emissions = WASTE_DATA[
-            WASTE_DATA["Name"] == MATERIALS[material]["waste"][waste_scenario]
-        ][["CO2", "CH4", "N2O", "CO"]].iloc[0]
     construction_emissions = construction(
         material, timeframe, mpy, no_replacements
     )
@@ -148,6 +146,23 @@ def demolition(material, timeframe, mpy, waste_emissions):
     return dataset[:timeframe]
 
 
+def waste_process(material, timeframe, waste_scenario):
+    if (
+        MATERIALS[material]["CO2bio"] != 0
+        and MATERIALS[material]["waste"][waste_scenario] == "incineration"
+    ):
+        waste_emissions = pd.DataFrame(
+            np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
+        )
+        waste_emissions.loc[0] = [-MATERIALS[material]["CO2bio"], 0, 0, 0]
+        waste_emissions = waste_emissions.iloc[0]
+    else:
+        waste_emissions = WASTE_DATA[
+            WASTE_DATA["Name"] == MATERIALS[material]["waste"][waste_scenario]
+        ][["CO2", "CH4", "N2O", "CO"]].iloc[0]
+    return waste_emissions
+
+
 def mass_per_year(building_scenario, mph, total_houses, years, timeframe):
     if building_scenario == "normal":
         mpy = np.array(
@@ -193,10 +208,6 @@ def mass_per_house(material):
         volume = M2FACADE * 0.012
     else:
         volume = M2FACADE * RVALUE * MATERIALS[material]["lambda"]
-        print(material, M2FACADE, RVALUE, MATERIALS[material]["lambda"])
-        print("volume", volume)
-        print("density", MATERIALS[material]["density"])
-        print("mph", volume * MATERIALS[material]["density"])
     return volume * MATERIALS[material]["density"]
 
 
