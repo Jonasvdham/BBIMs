@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from make_dataset import MATERIALS
+from constants import MATERIALS, FORMATTING
 from datetime import datetime
 
 
@@ -18,7 +18,6 @@ def plot_GWI(
         "straw",
         "hemp",
         "flax",
-        "gypsum",
     ],
     building_scenario="normal",
     total_houses=1,
@@ -38,23 +37,13 @@ def plot_GWI(
     )
 
     EoL = ["Incineration", "Biogas"]
-    color = iter(plt.cm.rainbow(np.linspace(0, 1, len(materials))))
+    color = iter(plt.cm.rainbow(np.linspace(0, 1, len(GWIs.keys()))))
 
     x = np.arange(timeframe) + 2023
-    for material in materials:
-        if material != "gypsum":
-            c = next(color)
-            plt.plot(x, GWIs[material][plottype], label=material, c=c)
-            if (
-                MATERIALS[material]["fire_class"] != "A1"
-                and "gypsum" in materials
-            ):
-                plt.plot(
-                    x,
-                    GWIs[material][plottype] + GWIs["gypsum"][plottype],
-                    c=c,
-                    linestyle="dashed",
-                )
+    for material in GWIs.keys():
+        c = next(color)
+        test = {"label": material, "c": c}
+        plt.plot(x, GWIs[material][plottype], **FORMATTING[material])
 
     plt.xlabel("Years")
     plt.ylabel("Radiative forcing " + plottype)

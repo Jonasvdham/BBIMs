@@ -2,7 +2,17 @@ import numpy as np
 from scipy.integrate import quad
 import pandas as pd
 from make_dataset import make_datasets
-from constants import ACO2, ACH4, AN2O, TAUCO2, TAUCH4, TAUN2O, ABERN, A0BERN
+from constants import (
+    MATERIALS,
+    ACO2,
+    ACH4,
+    AN2O,
+    TAUCO2,
+    TAUCH4,
+    TAUN2O,
+    ABERN,
+    A0BERN,
+)
 
 
 def DLCA(
@@ -15,7 +25,6 @@ def DLCA(
         "XPS",
         "stone wool",
         "glass wool",
-        "gypsum",
     ],
     building_scenario="normal",
     total_houses=150000,
@@ -24,15 +33,22 @@ def DLCA(
     waste_scenario=0,
 ):
     dataset = make_datasets(
-        materials,
+        materials + ["gypsum"],
         building_scenario,
         total_houses,
         time_horizon,
         timeframe,
         waste_scenario,
     )
-    GWIs = {}
     for material in materials:
+        if MATERIALS[material]["fire_class"] != "A1":
+            dataset[material + " + gypsum"] = (
+                dataset[material] + dataset["gypsum"]
+            )
+    del dataset["gypsum"]
+
+    GWIs = {}
+    for material in dataset.keys():
         GWI_inst = GWI(dataset[material], timeframe)
         GWI_inst_tot = GWI_inst.sum(axis=1)
         GWI_cum = GWI_inst_tot.cumsum()

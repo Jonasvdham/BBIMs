@@ -21,6 +21,25 @@ CURRENT_YEAR = 2023
 M2FACADE = 7.6
 RVALUE = 3.5
 BUILDING_LIFETIME = 75
+
+FORMATTING = {
+    "cellulose": {"label": "Cellulose", "c": "#189AB4"},
+    "straw": {"label": "Straw", "c": "#05445E"},
+    "hemp": {"label": "Hemp", "c": "#81B622"},
+    "flax": {"label": "Flax", "c": "#59981A"},
+    "wood fiber": {"label": "Wood fiber", "c": "#3D550C"},
+    "EPS": {"label": "EPS", "c": "#5F093D"},
+    "XPS": {"label": "XPS", "c": "#B21368"},
+    "stone wool": {"label": "Stone wool", "c": "#D67BA8"},
+    "glass wool": {"label": "Glass wool", "c": "#EFD3B5"},
+    "cellulose + gypsum": {"c": "#189AB4", "linestyle": "dashed"},
+    "straw + gypsum": {"c": "#05445E", "linestyle": "dashed"},
+    "hemp + gypsum": {"c": "#81B622", "linestyle": "dashed"},
+    "flax + gypsum": {"c": "#59981A", "linestyle": "dashed"},
+    "wood fiber + gypsum": {"c": "#3D550C", "linestyle": "dashed"},
+    "EPS + gypsum": {"c": "#5F093D", "linestyle": "dashed"},
+    "XPS + gypsum": {"c": "#B21368", "linestyle": "dashed"},
+}
 MATERIALS = {
     "truck": {
         "name": "Transport, freight, lorry 7.5-16 metric ton, EURO3 {GLO}| market for | Cut-off, S"
@@ -46,10 +65,7 @@ MATERIALS = {
         "CO2bio": -0.404 * 44 / 12,
         "rotation": 1,
         "lifetime": 50,
-        "waste": [
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-        ],
+        "waste": ["incineration", "incineration"],
     },
     "flax": {
         "name": "Fibre, flax {RoW}| fibre production, flax, retting | Cut-off, U",
