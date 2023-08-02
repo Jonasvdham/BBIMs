@@ -67,17 +67,15 @@ def make_dataset(
     no_replacements = int(
         np.ceil(BUILDING_LIFETIME / MATERIALS[material]["lifetime"]) - 1
     )
-    waste_emissions = waste_process(material, timeframe, waste_scenario)
+    waste_per_kg = waste_emissions(material, timeframe, waste_scenario)
 
     construction_emissions = construction(
         material, timeframe, mpy, no_replacements
     )
     replacement_emissions = replacement(
-        material, timeframe, mpy, no_replacements, waste_emissions
+        material, timeframe, mpy, no_replacements, waste_per_kg
     )
-    demolition_emissions = demolition(
-        material, timeframe, mpy, waste_emissions
-    )
+    demolition_emissions = demolition(material, timeframe, mpy, waste_per_kg)
     return (
         construction_emissions + replacement_emissions + demolition_emissions
     )
@@ -96,17 +94,7 @@ def construction(material, timeframe, mpy, no_replacements):
     if MATERIALS[material]["plant_based"]:
         dataset["CO2"] += CO2bio(material, mpy, timeframe)
         # Add truck emissions, 11750 kg per truck, 50 km per truck
-        dataset += pd.DataFrame(
-            i
-            / 11750
-            * 50
-            * TRANSPORT_DATA[
-                TRANSPORT_DATA["Name"] == MATERIALS["truck"]["name"]
-            ][["CO2", "CH4", "N2O", "CO"]]
-            .reset_index(drop=True)
-            .loc[0]
-            for i in mpy
-        )
+        dataset += pd.DataFrame(transport50km(kg) for kg in mpy)
 
     tmp = pd.DataFrame(
         np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
@@ -124,43 +112,43 @@ def construction(material, timeframe, mpy, no_replacements):
     return dataset.reset_index(drop=True) + tmp
 
 
-def replacement(material, timeframe, mpy, no_replacements, waste_emissions):
+def replacement(material, timeframe, mpy, no_replacements, waste_per_kg):
     dataset = pd.DataFrame(
         np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
     )
     for j in range(no_replacements):
         for i in range(timeframe):
             dataset.loc[i + MATERIALS[material]["lifetime"] * (j + 1)] = (
-                waste_emissions * mpy[i]
+                waste_per_kg * mpy[i]
             )
 
     return dataset[:timeframe]
 
 
-def demolition(material, timeframe, mpy, waste_emissions):
+def demolition(material, timeframe, mpy, waste_per_kg):
     dataset = pd.DataFrame(
         np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
     )
     for i in range(timeframe):
-        dataset.loc[i + BUILDING_LIFETIME] = waste_emissions * mpy[i]
+        dataset.loc[i + BUILDING_LIFETIME] = waste_per_kg * mpy[i]
     return dataset[:timeframe]
 
 
-def waste_process(material, timeframe, waste_scenario):
+def waste_emissions(material, timeframe, waste_scenario):
     if (
         MATERIALS[material]["CO2bio"] != 0
         and MATERIALS[material]["waste"][waste_scenario] == "incineration"
     ):
-        waste_emissions = pd.DataFrame(
-            np.zeros((timeframe, 4)), columns=["CO2", "CH4", "N2O", "CO"]
+        waste_per_kg = pd.Series(
+            [-MATERIALS[material]["CO2bio"], 0, 0, 0],
+            index=["CO2", "CH4", "N2O", "CO"],
         )
-        waste_emissions.loc[0] = [-MATERIALS[material]["CO2bio"], 0, 0, 0]
-        waste_emissions = waste_emissions.iloc[0]
+        waste_per_kg += transport50km(1)
     else:
-        waste_emissions = WASTE_DATA[
+        waste_per_kg = WASTE_DATA[
             WASTE_DATA["Name"] == MATERIALS[material]["waste"][waste_scenario]
         ][["CO2", "CH4", "N2O", "CO"]].iloc[0]
-    return waste_emissions
+    return waste_per_kg
 
 
 def mass_per_year(building_scenario, mph, total_houses, years, timeframe):
@@ -209,6 +197,19 @@ def mass_per_house(material):
     else:
         volume = M2FACADE * RVALUE * MATERIALS[material]["lambda"]
     return volume * MATERIALS[material]["density"]
+
+
+def transport50km(kg):
+    return (
+        kg
+        / 11750
+        * 50
+        * TRANSPORT_DATA[TRANSPORT_DATA["Name"] == MATERIALS["truck"]["name"]][
+            ["CO2", "CH4", "N2O", "CO"]
+        ]
+        .reset_index(drop=True)
+        .loc[0]
+    )
 
 
 def CO2bio(material, mpy, timeframe):
