@@ -1,3 +1,22 @@
+"""
+aCH4 - instant. radiative forcing per unit mass [W/m2 /kg]
+aCO2 - instant. radiative forcing per unit mass [W/m2 /kg]
+aN2O - instant. radiative forcing per unit mass [W/m2 /kg]
+tauCO2 - parameters according to Bern carbon cycle-climate model
+tauCH4 - lifetime (years)
+tauN2O - lifetime (years)
+aBern - CO2 parameters according to Bern carbon cycle-climate model
+a0Bern - CO2 parameters according to Bern carbon cycle-climate model
+"""
+ACO2 = 1.76e-15
+ACH4 = 1.28e-13
+AN2O = 3.90e-13
+TAUCO2 = [172.9, 18.51, 1.186]
+TAUCH4 = 12
+TAUN2O = 114
+ABERN = [0.259, 0.338, 0.186]
+A0BERN = 0.217
+
 CURRENT_YEAR = 2023
 M2FACADE = 7.6
 RVALUE = 3.5
