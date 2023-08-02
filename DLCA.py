@@ -17,6 +17,7 @@ from constants import (
 
 def DLCA(
     materials=[
+        "cellulose",
         "straw",
         "hemp",
         "flax",
