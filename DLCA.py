@@ -10,6 +10,7 @@ def DLCA(
         "straw",
         "hemp",
         "flax",
+        "wood fiber",
         "EPS",
         "XPS",
         "stone wool",

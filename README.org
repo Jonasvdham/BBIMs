@@ -20,9 +20,9 @@
 Thesis research project into the carbon-removal potential of bio-based
 insulation materials (BBIMs)
 
-file:DLCA.py models global warming impact of different construction scenarios
+[[file:DLCA.py]] models global warming impact of different construction scenarios
 through a dynamic life cycle assessment
-file:make_dataset.py creates the required dynamic life cycle inventory
+[[file:make_dataset.py]] creates the required dynamic life cycle inventory
 
 ** DLCA
 

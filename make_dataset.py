@@ -21,7 +21,7 @@ def make_datasets(
     timeframe=200,
     waste_scenario=0,
 ):
-    dataset = {}
+    datasets = {}
     for material in materials:
         df = make_dataset(
             material,
@@ -31,8 +31,8 @@ def make_datasets(
             timeframe,
             waste_scenario,
         )
-        dataset[material] = df
-    return dataset
+        datasets[material] = df
+    return datasets
 
 
 def make_dataset(
@@ -193,6 +193,10 @@ def mass_per_house(material):
         volume = M2FACADE * 0.012
     else:
         volume = M2FACADE * RVALUE * MATERIALS[material]["lambda"]
+        print(material, M2FACADE, RVALUE, MATERIALS[material]["lambda"])
+        print("volume", volume)
+        print("density", MATERIALS[material]["density"])
+        print("mph", volume * MATERIALS[material]["density"])
     return volume * MATERIALS[material]["density"]
 
 

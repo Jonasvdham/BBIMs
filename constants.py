@@ -111,7 +111,7 @@ MATERIALS = {
     "straw": {  # Ecoinvent
         "name": "Straw {CH}| wheat production, Swiss integrated production, extensive | Cut-off, S",
         "plant_based": True,
-        "lambda": 0.44,
+        "lambda": 0.044,
         "fire_class": "E",
         "density": 100,
         "CO2bio": -0.368 * 44 / 12,
