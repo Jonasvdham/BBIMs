@@ -1,9 +1,9 @@
-from DLCA import DLCA
+from DLCA import DLCA, GWPdyn
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from constants import MATERIALS, FORMATTING
+from constants import MATERIALS, M2FACADE, FORMATTING
 from datetime import datetime
 
 
@@ -37,12 +37,9 @@ def plot_GWI(
     )
 
     EoL = ["Incineration", "Biogas"]
-    color = iter(plt.cm.rainbow(np.linspace(0, 1, len(GWIs.keys()))))
 
     x = np.arange(timeframe) + 2023
     for material in GWIs.keys():
-        c = next(color)
-        test = {"label": material, "c": c}
         plt.plot(x, GWIs[material][plottype], **FORMATTING[material])
 
     plt.xlabel("Years")
@@ -64,10 +61,36 @@ def plot_GWI(
     plt.close()
 
 
+def plot_GWPdyn(total_houses=1 / M2FACADE, time_horizon=2024, outfile=False):
+    dataset = GWPdyn(total_houses, time_horizon)
+    x = np.arange(200) + 2023
+    for material in dataset.material.unique():
+        plt.plot(
+            x,
+            dataset.loc[dataset["material"] == material, "GWPdyn"],
+            **FORMATTING[material],
+        )
+    plt.xlabel("Years")
+    plt.ylabel("GWP (kg CO2-eq)")
+    plt.legend()
+    plt.title(f"Dynamic GWP of 1m2 of facade insulation")
+    plt.grid(True)
+
+    if outfile:
+        plt.savefig(
+            f"plots/{datetime.today().strftime('%Y-%m-%d')}_GWPdyn.svg"
+        )
+
+    else:
+        plt.show()
+
+    plt.close()
+
+
 def generate_plots(outfile=False):
     for scenario in [
         (592, 2024, ["normal"]),
-        (150000, 2050, ["slow", "normal", "fast"]),
+        (97500, 2050, ["slow", "normal", "fast"]),
     ]:
         for plottype in ["cum", "inst_tot"]:
             for waste_scenario in [0, 1]:

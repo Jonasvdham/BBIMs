@@ -48,6 +48,7 @@ MATERIALS = {
         "name": "Gypsum fibreboard {CH}| production | Cut-off, S",
         "plant_based": False,
         "density": 1150,  # placeholder
+        "fire_class": "A1",
         "CO2bio": -0,
         "rotation": 1,
         "lifetime": 50,
@@ -79,8 +80,6 @@ MATERIALS = {
         "waste": [
             "incineration",
             "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
-            "Biowaste {CH}| treatment of biowaste, industrial composting | Cut-off, S",
-            "Biowaste {CH}| treatment of, municipal incineration with fly ash extraction | Cut-off, S",
         ],
     },
     "hemp": {
@@ -106,10 +105,7 @@ MATERIALS = {
         "CO2bio": -0.4 * 44 / 12,  # placeholder
         "rotation": 50,  # placeholder
         "lifetime": 50,
-        "waste": [
-            "incineration",
-            "Waste gypsum plasterboard {CH}| treatment of, sorting plant | Cut-off, S",
-        ],
+        "waste": ["incineration", "incineration"],
     },
     "straw": {  # Ecoinvent
         "name": "Straw {CH}| wheat production, Swiss integrated production, extensive | Cut-off, S",
@@ -135,11 +131,8 @@ MATERIALS = {
         "rotation": 1,
         "lifetime": 50,
         "waste": [
-            # "Waste mineral wool {Europe without Switzerland}| market for waste mineral wool | Cut-off, S",
-            # "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, collection for final disposal | Cut-off, S",
             "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, sorting plant | Cut-off, S",
-            "Waste mineral wool, for final disposal {Europe without Switzerland}| treatment of waste mineral wool, inert material landfill | Cut-off, S",
-            "Waste mineral wool, for final disposal {Europe without Switzerland}| market for waste mineral wool, final disposal | Cut-off, S",
+            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, sorting plant | Cut-off, S",
         ],
     },
     "stone wool": {  # Ecoinvent
@@ -152,11 +145,8 @@ MATERIALS = {
         "rotation": 1,
         "lifetime": 50,
         "waste": [
-            # "Waste mineral wool {Europe without Switzerland}| market for waste mineral wool | Cut-off, S",
-            # "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, collection for final disposal | Cut-off, S",
             "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, sorting plant | Cut-off, S",
-            "Waste mineral wool, for final disposal {Europe without Switzerland}| treatment of waste mineral wool, inert material landfill | Cut-off, S",
-            "Waste mineral wool, for final disposal {Europe without Switzerland}| market for waste mineral wool, final disposal | Cut-off, S",
+            "Waste mineral wool {Europe without Switzerland}| treatment of waste mineral wool, sorting plant | Cut-off, S",
         ],
     },
     "EPS": {  # Ecoinvent
@@ -169,8 +159,7 @@ MATERIALS = {
         "rotation": 1,
         "lifetime": 50,
         "waste": [
-            # "Waste polystyrene {Europe without Switzerland}| market for waste polystyrene | Cut-off, S",
-            "Waste expanded polystyrene {CH}| treatment of, municipal incineration | Cut-off, S",
+            "Waste polystyrene {Europe without Switzerland}| treatment of waste polystyrene, sanitary landfill | Cut-off, S",
             "Waste polystyrene {Europe without Switzerland}| treatment of waste polystyrene, sanitary landfill | Cut-off, S",
         ],
     },
@@ -184,8 +173,7 @@ MATERIALS = {
         "rotation": 1,
         "lifetime": 50,
         "waste": [
-            # "Waste polystyrene {Europe without Switzerland}| market for waste polystyrene | Cut-off, S",
-            "Waste expanded polystyrene {CH}| treatment of, municipal incineration | Cut-off, S",
+            "Waste polystyrene {Europe without Switzerland}| treatment of waste polystyrene, sanitary landfill | Cut-off, S",
             "Waste polystyrene {Europe without Switzerland}| treatment of waste polystyrene, sanitary landfill | Cut-off, S",
         ],
     },

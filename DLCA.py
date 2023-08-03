@@ -4,6 +4,7 @@ import pandas as pd
 from make_dataset import make_datasets
 from constants import (
     MATERIALS,
+    M2FACADE,
     ACO2,
     ACH4,
     AN2O,
@@ -28,25 +29,27 @@ def DLCA(
         "glass wool",
     ],
     building_scenario="normal",
-    total_houses=150000,
+    total_houses=97500,
     time_horizon=2050,
     timeframe=200,
     waste_scenario=0,
+    dataset=None,
 ):
-    dataset = make_datasets(
-        materials + ["gypsum"],
-        building_scenario,
-        total_houses,
-        time_horizon,
-        timeframe,
-        waste_scenario,
-    )
-    for material in materials:
-        if MATERIALS[material]["fire_class"] != "A1":
-            dataset[material + " + gypsum"] = (
-                dataset[material] + dataset["gypsum"]
-            )
-    del dataset["gypsum"]
+    if dataset is None:
+        dataset = make_datasets(
+            materials + ["gypsum"],
+            building_scenario,
+            total_houses,
+            time_horizon,
+            timeframe,
+            waste_scenario,
+        )
+        for material in materials:
+            if MATERIALS[material]["fire_class"] != "A1":
+                dataset[material + " + gypsum"] = (
+                    dataset[material] + dataset["gypsum"]
+                )
+        del dataset["gypsum"]
 
     GWIs = {}
     for material in dataset.keys():
@@ -112,3 +115,28 @@ def C_CH4(t):
 
 def C_N2O(t):
     return np.exp(-t / TAUN2O)
+
+
+def GWPdyn(total_houses=1 / M2FACADE, time_horizon=2024):
+    aGWP = DLCA(total_houses=total_houses, time_horizon=time_horizon)
+    kgCO2 = pd.DataFrame(
+        np.zeros((200, 4)), columns=["CO2", "CH4", "N2O", "CO"]
+    )
+    kgCO2.iloc[0]["CO2"] = 1
+    aGWPCO2 = DLCA(dataset={"1kg CO2": kgCO2})
+
+    column_names = ["material", "year", "GWPdyn"]
+    df = pd.DataFrame(columns=column_names)
+    for material in list(aGWP.keys()):
+        tmp_df = pd.concat(
+            [
+                pd.Series([material for i in range(200)]),
+                pd.Series([i for i in range(200)]),
+                aGWP[material]["cum"] / aGWPCO2["1kg CO2"]["cum"],
+            ],
+            axis=1,
+            keys=column_names,
+        )
+        df = pd.concat([df, tmp_df])
+    df = df.reset_index(drop=True)
+    return df

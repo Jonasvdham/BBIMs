@@ -62,21 +62,29 @@ def print_stats(df):
         print("y0 max - ", df.loc[y0max]["material"], df.loc[y0max][i])
         print(
             "min - year: ",
-            df.loc[minimum]["year"],
+            2023 + df.loc[minimum]["year"],
             df.loc[minimum]["material"],
             df.loc[minimum][i],
         )
         print(
             "max - year: ",
-            df.loc[maximum]["year"],
+            2023 + df.loc[maximum]["year"],
             df.loc[maximum]["material"],
             df.loc[maximum][i],
         )
 
 
 if __name__ == "__main__":
-    for scenario in [(592, 2024), (150000, 2050)]:
-        print(f"Total houses: {scenario[0]} - Timeframe: {scenario[1]}")
-        print_stats(
-            prep_data(total_houses=scenario[0], time_horizon=scenario[1])
-        )
+    waste_scenarios = ["incineration", "anaerobic digestion"]
+    for scenario in [(592, 2024), (97500, 2050)]:
+        for waste in [0, 1]:
+            print(
+                f"Total houses: {scenario[0]} - Timeframe: {scenario[1]} - EoL: {waste_scenarios[waste]}"
+            )
+            print_stats(
+                prep_data(
+                    total_houses=scenario[0],
+                    time_horizon=scenario[1],
+                    waste_scenario=waste,
+                )
+            )

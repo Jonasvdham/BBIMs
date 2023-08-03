@@ -26,7 +26,7 @@ def make_datasets(
         "gypsum",
     ],
     building_scenario="normal",
-    total_houses=150000,
+    total_houses=97500,
     time_horizon=2050,
     timeframe=200,
     waste_scenario=0,
@@ -48,7 +48,7 @@ def make_datasets(
 def make_dataset(
     material="straw",
     building_scenario="normal",
-    total_houses=150000,
+    total_houses=97500,
     time_horizon=2050,
     timeframe=200,
     waste_scenario=0,
