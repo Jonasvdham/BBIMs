@@ -93,7 +93,6 @@ def construction(material, timeframe, mpy, no_replacements):
 
     if MATERIALS[material]["plant_based"]:
         dataset["CO2"] += CO2bio(material, mpy, timeframe)
-        # Add truck emissions, 11750 kg per truck, 50 km per truck
         dataset += pd.DataFrame(transport50km(kg) for kg in mpy)
 
     tmp = pd.DataFrame(
@@ -200,6 +199,7 @@ def mass_per_house(material):
 
 
 def transport50km(kg):
+    "11750 kg per truck - 50km"
     return (
         kg
         / 11750

@@ -70,9 +70,9 @@ def GWI(dataset, timeframe):
         np.zeros((timeframe, 3)), columns=["CO2", "CH4", "N2O"]
     )
     for t in range(timeframe):
-        GWI_inst["CO2"] += (dataset["CO2"][t] + dataset["CO"][t]) * DCF_CO2_ti[
-            t
-        ]
+        GWI_inst["CO2"] += (
+            dataset["CO2"][t] + (((32 + 12) / (16 + 12)) * dataset["CO"][t])
+        ) * DCF_CO2_ti[t]
         GWI_inst["CH4"] += dataset["CH4"][t] * DCF_CH4_ti[t]
         GWI_inst["N2O"] += dataset["N2O"][t] * DCF_N2O_ti[t]
     return GWI_inst
