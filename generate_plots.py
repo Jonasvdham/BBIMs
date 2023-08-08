@@ -61,6 +61,32 @@ def plot_GWI(
     plt.close()
 
 
+def hpy(houses=97500, years=27, plottype="inst", outfile=False):
+    slow = [(houses / (years ** 2)) * x ** 2 for x in range(years + 1)]
+    fast = [(houses / (years ** 0.5)) * x ** 0.5 for x in range(years + 1)]
+    normal = [i * houses / years for i in range(years + 1)]
+    title = "Total number of houses constructed"
+    x = np.arange(years + 1) + 2023
+    if plottype == "inst":
+        slow = np.diff(slow)
+        fast = np.diff(fast)
+        normal = np.diff(normal)
+        title = "Number of houses constructed per year"
+        x = np.arange(years) + 2023
+    plt.plot(x, slow, label="slow")
+    plt.plot(x, fast, label="fast")
+    plt.plot(x, normal, label="normal")
+    plt.legend()
+    plt.title(title)
+    plt.grid(True)
+
+    if outfile:
+        plt.savefig(f"plots/houses_per_year.svg")
+    else:
+        plt.show()
+    plt.close()
+
+
 def plot_GWPdyn(total_houses=1 / M2FACADE, time_horizon=2024, outfile=False):
     dataset = GWPdyn(total_houses, time_horizon)
     x = np.arange(200) + 2023
