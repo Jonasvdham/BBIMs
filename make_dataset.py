@@ -199,10 +199,10 @@ def mass_per_house(material):
 
 
 def transport50km(kg):
-    "11750 kg per truck - 50km"
+    "1000kg per truck - 50km"
     return (
         kg
-        / 11750
+        / 1000
         * 50
         * TRANSPORT_DATA[TRANSPORT_DATA["Name"] == MATERIALS["truck"]["name"]][
             ["CO2", "CH4", "N2O", "CO"]
