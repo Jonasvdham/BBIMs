@@ -8,6 +8,7 @@ def prep_data(
     materials=[
         "cellulose",
         "straw",
+        "grass",
         "hemp",
         "flax",
         "wood fiber",
@@ -51,6 +52,17 @@ def prep_data(
 
 
 def print_stats(df):
+    for material in [
+        "cellulose",
+        "straw",
+        "grass",
+        "hemp",
+        "flax",
+        "wood fiber",
+        "EPS",
+        "XPS",
+    ]:
+        df = df[df["material"] != material]
     for i in ["inst", "cum"]:
         y0min = df[df["year"] == 0][i].idxmin()
         y0max = df[df["year"] == 0][i].idxmax()

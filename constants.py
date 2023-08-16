@@ -25,6 +25,7 @@ BUILDING_LIFETIME = 75
 FORMATTING = {
     "cellulose": {"label": "Cellulose", "c": "#189AB4"},
     "straw": {"label": "Straw", "c": "#05445E"},
+    "grass": {"label": "Grass fiber", "c": "#000000"},
     "hemp": {"label": "Hemp", "c": "#81B622"},
     "flax": {"label": "Flax", "c": "#59981A"},
     "wood fiber": {"label": "Wood fiber", "c": "#3D550C"},
@@ -34,12 +35,32 @@ FORMATTING = {
     "glass wool": {"label": "Glass wool", "c": "#EFD3B5"},
     "cellulose + gypsum": {"c": "#189AB4", "linestyle": "dashed"},
     "straw + gypsum": {"c": "#05445E", "linestyle": "dashed"},
+    "grass + gypsum": {"c": "#000000", "linestyle": "dashed"},
     "hemp + gypsum": {"c": "#81B622", "linestyle": "dashed"},
     "flax + gypsum": {"c": "#59981A", "linestyle": "dashed"},
     "wood fiber + gypsum": {"c": "#3D550C", "linestyle": "dashed"},
     "EPS + gypsum": {"c": "#5F093D", "linestyle": "dashed"},
     "XPS + gypsum": {"c": "#B21368", "linestyle": "dashed"},
+    "legend": {
+        "inst_tot": {
+            "592": {"normal": {"0": False, "1": True}},
+            "97500": {
+                "slow": {"0": False, "1": False},
+                "normal": {"0": False, "1": True},
+                "fast": {"0": False, "1": False},
+            },
+        },
+        "cum": {
+            "592": {"normal": {"0": False, "1": True}},
+            "97500": {
+                "slow": {"0": True, "1": True},
+                "normal": {"0": True, "1": True},
+                "fast": {"0": True, "1": True},
+            },
+        },
+    },
 }
+
 MATERIALS = {
     "truck": {
         "name": "Transport, freight, lorry 7.5-16 metric ton, EURO3 {GLO}| market for | Cut-off, S"
@@ -71,7 +92,7 @@ MATERIALS = {
     "flax": {
         "name": "Fibre, flax {RoW}| fibre production, flax, retting | Cut-off, U",
         "plant_based": True,
-        "lambda": 0.041,  # placeholder
+        "lambda": 0.038,
         "fire_class": "E",
         "density": 40,
         "CO2bio": -0.44 * 44 / 12,
@@ -88,7 +109,7 @@ MATERIALS = {
         "lambda": 0.041,
         "fire_class": "E",
         "density": 36,
-        "CO2bio": -0.377 * 44 / 12,  # from biofib'chanvre EPD
+        "CO2bio": -0.377 * 44 / 12,
         "rotation": 1,
         "lifetime": 50,
         "waste": [
@@ -99,13 +120,27 @@ MATERIALS = {
     "wood fiber": {
         "name": "Wood wool {RER}| production | Cut-off, S",
         "plant_based": True,
-        "lambda": 0.046,  # placeholder
+        "lambda": 0.038,
         "fire_class": "E",
-        "density": 34.5,
-        "CO2bio": -0.4 * 44 / 12,  # placeholder
-        "rotation": 50,  # placeholder
+        "density": 47.5,
+        "CO2bio": -0.4 * 44 / 12,
+        "rotation": 50,
         "lifetime": 50,
         "waste": ["incineration", "incineration"],
+    },
+    "grass": {  # Ecoinvent
+        "name": "Grass, organic {CH}| grass production, permanent grassland, organic, intensive | Cut-off, S",
+        "plant_based": True,
+        "lambda": 0.04,
+        "fire_class": "E",
+        "density": 40,
+        "CO2bio": -0.51 * 44 / 12,
+        "rotation": 1,
+        "lifetime": 50,
+        "waste": [
+            "incineration",
+            "Biowaste {CH}| treatment of biowaste by anaerobic digestion | Cut-off, S",
+        ],
     },
     "straw": {  # Ecoinvent
         "name": "Straw {CH}| wheat production, Swiss integrated production, extensive | Cut-off, S",
@@ -152,9 +187,9 @@ MATERIALS = {
     "EPS": {  # Ecoinvent
         "name": "Polystyrene foam slab {CH}| production, 45% recycled | Cut-off, S",
         "plant_based": False,
-        "lambda": 0.035,
+        "lambda": 0.031,
         "fire_class": "E",
-        "density": 30,
+        "density": 20,
         "CO2bio": -0,
         "rotation": 1,
         "lifetime": 50,
@@ -168,7 +203,7 @@ MATERIALS = {
         "plant_based": False,
         "lambda": 0.033,
         "fire_class": "E",
-        "density": 40,  # placeholder
+        "density": 30,
         "CO2bio": -0,
         "rotation": 1,
         "lifetime": 50,
