@@ -20,6 +20,7 @@ def DLCA(
     materials=[
         "cellulose",
         "straw",
+        "grass",
         "hemp",
         "flax",
         "wood fiber",

@@ -20,6 +20,7 @@ def plot_GWI(
         "grass",
         "hemp",
         "flax",
+        "gypsum",
     ],
     building_scenario="normal",
     total_houses=1,
@@ -27,7 +28,6 @@ def plot_GWI(
     timeframe=200,
     waste_scenario=0,
     plottype="inst_tot",
-    legend=False,
     outfile=False,
 ):
     GWIs = DLCA(
@@ -44,26 +44,19 @@ def plot_GWI(
     x = np.arange(timeframe) + 2023
     plt.figure(figsize=(8, 6))
     for material in GWIs.keys():
-        plt.plot(
-            x, GWIs[material][plottype], linewidth=1, **FORMATTING[material]
-        )
+        plt.plot(x, GWIs[material][plottype], **FORMATTING[material])
 
-    plt.plot(
-        [], [], color="grey", linestyle="--", label="Added Gypsum fiberboard"
-    )
+    plt.plot([], [], color="grey", linestyle="--", label="Added Gypsum")
 
+    # legend = plt.legend(
+    #     bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0, prop={"size": 12}
+    # )
+    # return legend
     plt.xlabel("Year")
     if plottype == "cum":
         plt.ylabel(r"Cumulative radiative forcing $(Wm^{-2}yr)$")
     else:
         plt.ylabel(r"Radiative forcing $(Wm^{-2})$")
-    if legend:
-        plt.legend(
-            bbox_to_anchor=(1.05, 1),
-            loc=2,
-            borderaxespad=0.0,
-            prop={"size": 12},
-        )
     plt.grid(True)
 
     if outfile:
@@ -104,6 +97,15 @@ def hpy(houses=97500, years=27, plottype="inst", outfile=False):
     plt.close()
 
 
+def export_legend(legend, filename="plots/legend.pdf", expand=[-5, -5, 5, 5]):
+    fig = legend.figure
+    fig.canvas.draw()
+    bbox = legend.get_window_extent()
+    bbox = bbox.from_extents(*(bbox.extents + np.array(expand)))
+    bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
+    fig.savefig(filename, dpi="figure", bbox_inches=bbox)
+
+
 def plot_GWPdyn(
     total_houses=1 / M2FACADE, time_horizon=2024, timeframe=2223, outfile=False
 ):
@@ -115,14 +117,11 @@ def plot_GWPdyn(
         plt.plot(
             x,
             dataset.loc[dataset["material"] == material, "GWPdyn"],
-            linewidth=1,
             **FORMATTING[material],
         )
     plt.xlabel("Year")
     plt.ylabel("GWP (kg CO2-equivalents)")
-    plt.legend(
-        bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0, prop={"size": 12}
-    )
+
     # plt.title(f"Dynamic GWP of 1m2 of facade insulation")
     plt.grid(True)
 
@@ -136,8 +135,8 @@ def plot_GWPdyn(
 
 
 def generate_plots(outfile=False):
-    # plot_GWPdyn(outfile=outfile)
-    # plot_GWPdyn(97500, 2050, 2100, True)
+    plot_GWPdyn(outfile=outfile)
+    plot_GWPdyn(97500, 2050, 2100, outfile=outfile)
     for scenario in [
         (592, 2024, ["normal"]),
         (97500, 2050, ["slow", "normal", "fast"]),
@@ -145,12 +144,6 @@ def generate_plots(outfile=False):
         for plottype in ["cum", "inst_tot"]:
             for waste_scenario in [0, 1]:
                 for building_scenario in scenario[2]:
-                    print(
-                        plottype,
-                        str(scenario[0]),
-                        building_scenario,
-                        waste_scenario,
-                    )
                     plot_GWI(
                         [
                             "stone wool",
@@ -171,9 +164,6 @@ def generate_plots(outfile=False):
                         200,
                         waste_scenario,
                         plottype,
-                        FORMATTING["legend"][plottype][str(scenario[0])][
-                            building_scenario
-                        ][str(waste_scenario)],
                         outfile,
                     )
 
