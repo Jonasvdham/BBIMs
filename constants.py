@@ -24,8 +24,8 @@ BUILDING_LIFETIME = 75
 
 FORMATTING = {
     "cellulose": {"label": "Cellulose", "c": "#189AB4"},
-    "straw": {"label": "Straw", "c": "#fac241"},
-    "grass": {"label": "Grass fiber", "c": "#e1f714"},
+    "straw": {"label": "Straw", "c": "#b86b1a"},
+    "grass": {"label": "Grass fiber", "c": "#fac241"},
     "hemp": {"label": "Hemp", "c": "#97c93c"},
     "flax": {"label": "Flax", "c": "#7c8f13"},
     "wood fiber": {"label": "Wood fiber", "c": "#1854b4"},
@@ -34,8 +34,8 @@ FORMATTING = {
     "stone wool": {"label": "Stone wool", "c": "#D67BA8"},
     "glass wool": {"label": "Glass wool", "c": "#EFD3B5"},
     "cellulose + gypsum": {"c": "#189AB4", "linestyle": "dashed"},
-    "straw + gypsum": {"c": "#fac241", "linestyle": "dashed"},
-    "grass + gypsum": {"c": "#e1f714", "linestyle": "dashed"},
+    "straw + gypsum": {"c": "#b86b1a", "linestyle": "dashed"},
+    "grass + gypsum": {"c": "#fac241", "linestyle": "dashed"},
     "hemp + gypsum": {"c": "#97c93c", "linestyle": "dashed"},
     "flax + gypsum": {"c": "#7c8f13", "linestyle": "dashed"},
     "wood fiber + gypsum": {"c": "#1854b4", "linestyle": "dashed"},

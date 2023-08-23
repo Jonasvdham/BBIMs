@@ -49,7 +49,10 @@ def plot_GWI(
     plt.plot([], [], color="grey", linestyle="--", label="Added Gypsum")
 
     # legend = plt.legend(
-    #     bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0, prop={"size": 12}
+    #     bbox_to_anchor=(1.05, 1),
+    #     loc=2,
+    #     borderaxespad=0.0,
+    #     prop={"size": 12},
     # )
     # return legend
     plt.xlabel("Year")
@@ -114,6 +117,7 @@ def plot_GWPdyn(
     dataset = dataset[dataset["year"] < timerange]
     x = np.arange(timerange) + 2023
     for material in dataset.material.unique():
+        print(material)
         plt.plot(
             x,
             dataset.loc[dataset["material"] == material, "GWPdyn"],
@@ -122,7 +126,6 @@ def plot_GWPdyn(
     plt.xlabel("Year")
     plt.ylabel("GWP (kg CO2-equivalents)")
 
-    # plt.title(f"Dynamic GWP of 1m2 of facade insulation")
     plt.grid(True)
 
     if outfile:
