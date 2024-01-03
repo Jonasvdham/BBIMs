@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+
 from constants import (
-    MATERIALS,
+    BUILDING_LIFETIME,
     CURRENT_YEAR,
     M2FACADE,
+    MATERIALS,
     RVALUE,
-    BUILDING_LIFETIME,
 )
 from data_loader import load_data
 
@@ -179,13 +179,13 @@ def mass_per_year(building_scenario, mph, total_houses, years, timeframe):
 
 def houses_per_year_fast(houses, years):
     return np.diff(
-        [(houses / (years ** 0.5)) * (x) ** 0.5 for x in range(years + 1)]
+        [(houses / (years**0.5)) * (x) ** 0.5 for x in range(years + 1)]
     )
 
 
 def houses_per_year_slow(houses, years):
     return np.diff(
-        [(houses / (years ** 2)) * (x) ** 2 for x in range(years + 1)]
+        [(houses / (years**2)) * (x) ** 2 for x in range(years + 1)]
     )
 
 

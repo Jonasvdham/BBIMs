@@ -1,11 +1,13 @@
-from DLCA import DLCA, GWPdyn
+from datetime import datetime
+
+import matplotlib.lines as mlines
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.lines as mlines
 from matplotlib.gridspec import GridSpec
-from constants import MATERIALS, M2FACADE, FORMATTING
-from datetime import datetime
+
+from constants import FORMATTING, M2FACADE, MATERIALS
+from DLCA import DLCA, GWPdyn
 
 
 def plot_GWI(
@@ -75,8 +77,8 @@ def plot_GWI(
 
 
 def hpy(houses=97500, years=27, plottype="inst", outfile=False):
-    slow = [(houses / (years ** 2)) * x ** 2 for x in range(years + 1)]
-    fast = [(houses / (years ** 0.5)) * x ** 0.5 for x in range(years + 1)]
+    slow = [(houses / (years**2)) * x**2 for x in range(years + 1)]
+    fast = [(houses / (years**0.5)) * x**0.5 for x in range(years + 1)]
     normal = [i * houses / years for i in range(years + 1)]
     title = "Total number of houses constructed"
     x = np.arange(years + 1) + 2023
