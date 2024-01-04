@@ -23,3 +23,16 @@ insulation materials (BBIMs)
 [[file:DLCA.py]] models global warming impact of different construction scenarios
 through a dynamic life cycle assessment
 [[file:make_dataset.py]] creates the required dynamic life cycle inventory
+
+* Demonstration of DLCA vs GWP
+
+For bio-based materials specifically, there's a large difference between DLCA
+GWI and GWP under a 100y timeframe.
+
+#+begin_src python
+res=demonstrate(timeframe=1000,plottype="inst_tot")
+((res['Conventional']['cum']/res['1kgCO2']['cum'])[100],(res['Biobased']['cum']/res['1kgCO2']['cum'])[100])
+((res['Conventional']['cum']/res['1kgCO2']['cum'])[200],(res['Biobased']['cum']/res['1kgCO2']['cum'])[200])
+((res['Conventional']['cum']/res['1kgCO2']['cum'])[500],(res['Biobased']['cum']/res['1kgCO2']['cum'])[500])
+((res['Conventional']['cum']/res['1kgCO2']['cum'])[1000],(res['Biobased']['cum']/res['1kgCO2']['cum'])[1000])
+#+end_src

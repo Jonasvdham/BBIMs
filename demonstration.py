@@ -41,11 +41,21 @@ def dummy_data(timeframe):
     dataset["10kgCO2"] = df
 
     data = np.zeros((timeframe, 4))
-    data[:70, [0]] = -1 / 7
-    data[69, 0] = 10
+    data[:10, [0]] = -10 / 10
+    data[49:59, [0]] = -10 / 10
+    data[0, 0] += 5
+    data[49, 0] += 5
+    data[49, 0] += 10
+    data[74, 0] += 10
     df = pd.DataFrame(data, columns=["CO2", "CH4", "N2O", "CO"])
+    dataset["Biobased"] = df
 
-    dataset["10kgCO2_storage"] = df
+    data = np.zeros((timeframe, 4))
+    data[0, 0] = 4
+    data[49, 0] = 5
+    data[74, 0] = 1
+    df = pd.DataFrame(data, columns=["CO2", "CH4", "N2O", "CO"])
+    dataset["Conventional"] = df
 
     return dataset
 
